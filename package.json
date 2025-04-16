@@ -1,0 +1,17 @@
+{
+  "name": "nodejs-app",
+  "version": "1.0.0",
+  "description": "Node.js application with Nginx",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "mkdir -p dist && cp -r public server.js package.json dist/",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

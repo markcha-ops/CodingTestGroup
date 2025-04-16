@@ -1,0 +1,13 @@
+version: '3'
+services:
+  nginx2:
+    restart: always
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./nginx
+    container_name: app_nginx-production222
+    environment:
+      - TZ=Asia/Seoul
+    ports:
+      - "4200:80"
+  

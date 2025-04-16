@@ -1,0 +1,35 @@
+spring:
+  baseUrl: ${baseUrl:https://study-with-me.site}
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST:112.216.32.6}:5432/${DATABASE_NAME:mydatabase}
+    username: ${DATABASE_USER:vetec}
+    password: ${DATABASE_PASSWORD:vetec3721!}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: ${GOOGLE_CLIENT_ID:248031988422-0j2ls4adbo6i9v0jko7mdq014qiu5id5.apps.googleusercontent.com}
+            clientSecret: ${GOOGLE_CLIENT_SECRET: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}
+            redirectUri: "${baseUrl:https://study-with-me.site}/oauth2/callback/google"
+            scope:
+              - email
+              - profile
+          github:
+            clientId: ${GITHUB_CLIENT_ID}
+            clientSecret: ${GITHUB_CLIENT_SECRET}
+            redirectUri: "${baseUrl:https://study-with-me.site}/oauth2/callback/{registrationId}"
+            scope:
+              - "user:email"
+              - "read:user"
+app:
+  auth:
+    tokenSecret: ${AUTH_TOKEN_SECRET:c3ByaW5nLWJvb3Qtc2VjdXJpdHktand0LXR1dG9yaWFsLWppd29vbi1zcHJpbmctYm9vdC1zZWN1cml0eS1qd3QtdHV0b3JpYWwK}
+    tokenExpirationMsec: 864000000
+    refreshTokenExpirationMsec: 2592000000  # 30 days in milliseconds
+  oauth2:
+    authorizedRedirectUris: http://localhost:4200/oauth2/redirect
