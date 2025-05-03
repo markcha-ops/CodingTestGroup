@@ -54,23 +54,17 @@ pipeline {
     
     post {
         success {
-            node {
-                echo 'Deployment successful!'
-            }
+            echo 'Deployment successful!'
         }
         failure {
-            node {
-                // 실패 시 컨테이너 로그 확인
-                sh 'docker-compose logs || echo "로그를 확인할 수 없습니다"'
-                echo 'Deployment failed'
-            }
+            // 실패 시 컨테이너 로그 확인
+            sh 'docker-compose logs || echo "로그를 확인할 수 없습니다"'
+            echo 'Deployment failed'
         }
         always {
-            node {
-                // 빌드 결과에 관계없이 항상 실행될 작업
-                echo 'Cleaning up workspace'
-                cleanWs()
-            }
+            // 빌드 결과에 관계없이 항상 실행될 작업
+            echo 'Cleaning up workspace'
+            cleanWs()
         }
     }
 } 
