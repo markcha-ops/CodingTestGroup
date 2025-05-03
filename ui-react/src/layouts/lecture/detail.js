@@ -31,6 +31,8 @@ import api from '../../api';
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
+import Embed from 'react-embed';
+import parse from 'html-react-parser';
 
 function LectureDetail() {
     const location = useLocation();
@@ -336,12 +338,16 @@ function LectureDetail() {
                                                       * CORS 문제 해결을 위해 gamma.app URL을 하드코딩합니다.
                                                       * 강의 ID에 따라 다른 URL을 표시합니다.
                                                       */}
-                                                    <iframe 
-                                                        src={getGammaUrlForLecture(lectureId)} 
-                                                        style={{ width: '100%', maxWidth: '100%', height: '100%' }}
-                                                        allow="fullscreen" 
-                                                        title={getGammaTitleForLecture(lectureId)}
-                                                    />
+                                                    {parse(`<iframe 
+                                                        src="${pdfUrl}"
+                                                        width="100%"
+                                                        height="600px"
+                                                        id="gamma-embed"
+                                                        class="gamma-embed"
+                                                        style="display:block;position:relative;" 
+                                                        allowfullscreen
+                                                        frameborder="0"
+                                                    ></iframe>`)}
                                                 </MDBox>
                                             </MDBox>
                                         )}
