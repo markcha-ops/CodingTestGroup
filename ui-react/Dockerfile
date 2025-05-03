@@ -5,7 +5,7 @@ WORKDIR /app
 # Copy package files and install dependencies
 COPY package.json ./
 COPY package-lock.json* ./
-RUN npm ci
+# RUN npm ci
 RUN npm install
 # Install missing dependencies
 RUN npm install react-monaco-editor
