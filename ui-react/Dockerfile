@@ -8,7 +8,9 @@ RUN npm ci
 
 # Install missing dependencies
 RUN npm install react-monaco-editor
-
+COPY package.json ./
+# package-lock.json이 존재하는 경우에만 복사 (선택사항)
+COPY package-lock.json* ./
 # Copy source code
 COPY . .
 
