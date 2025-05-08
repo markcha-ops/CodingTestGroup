@@ -88,7 +88,7 @@ function Basic() {
               </MDTypography>
             </Grid>
             <Grid item xs={2}>
-              <MDTypography component={MuiLink} href="/oauth2/authorize/google" variant="body1" color="white" onClick="{handleGoogleLogin}">
+              <MDTypography component={MuiLink} href="/oauth2/authorize/google" variant="body1" color="white">
                 <GoogleIcon color="inherit" />
               </MDTypography>
             </Grid>
