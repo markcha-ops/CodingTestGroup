@@ -97,12 +97,11 @@ const collapseIcon = ({ palette: { white, gradients } }, { active }) => ({
 });
 
 function collapseText(theme, ownerState) {
-  const { typography, transitions, breakpoints, functions, palette } = theme;
+  const { typography, transitions, breakpoints, functions } = theme;
   const { miniSidenav, transparentSidenav, active } = ownerState;
 
   const { size, fontWeightRegular, fontWeightLight } = typography;
   const { pxToRem } = functions;
-  const { white } = palette;
 
   return {
     marginLeft: pxToRem(10),
@@ -121,7 +120,6 @@ function collapseText(theme, ownerState) {
       fontWeight: active ? fontWeightRegular : fontWeightLight,
       fontSize: size.sm,
       lineHeight: 0,
-      color: active ? white.main : "inherit",
     },
   };
 }
