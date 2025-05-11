@@ -1,7 +1,9 @@
 package com.anita.multipleauthapi.controller;
 
 import com.anita.multipleauthapi.model.entity.UserEntity;
+import com.anita.multipleauthapi.model.error.UserAlreadyExistsException;
 import com.anita.multipleauthapi.model.payload.UserResponse;
+import com.anita.multipleauthapi.repository.UserRepository;
 import com.anita.multipleauthapi.security.CurrentUser;
 import com.anita.multipleauthapi.security.UserPrincipal;
 import com.anita.multipleauthapi.service.UserService;
@@ -11,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -21,6 +24,7 @@ import java.util.UUID;
 @RequestMapping("/api/user")
 public class UserController {
     private final UserService userService;
+    private final UserRepository userRepository;
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(@CurrentUser UserPrincipal userPrincipal) {
@@ -45,6 +49,12 @@ public class UserController {
 
     @PostMapping("")
     public ResponseEntity<UserResponse> createUser(@RequestBody UserEntity userPrincipal) {
+        // Check if email already exists
+        Optional<UserEntity> existingUser = userRepository.findByEmail(userPrincipal.getEmail());
+        if (existingUser.isPresent()) {
+            throw new UserAlreadyExistsException("Email already exists: " + userPrincipal.getEmail());
+        }
+        
         userService.createUser(userPrincipal);
         return ResponseEntity.ok(null);
     }

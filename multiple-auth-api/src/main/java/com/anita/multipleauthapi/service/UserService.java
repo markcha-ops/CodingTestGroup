@@ -1,6 +1,7 @@
 package com.anita.multipleauthapi.service;
 
 import com.anita.multipleauthapi.model.entity.UserEntity;
+import com.anita.multipleauthapi.model.enums.AuthorityType;
 import com.anita.multipleauthapi.model.payload.UserResponse;
 import com.anita.multipleauthapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +54,7 @@ public class UserService {
     public void createUser(UserEntity entity) {
         entity.setId(UUID.randomUUID());
         entity.setPassword(passwordEncoder.encode(entity.getPassword()));
-
+        entity.setAuthority(AuthorityType.USER);
         userRepository.save(entity);
     }
     

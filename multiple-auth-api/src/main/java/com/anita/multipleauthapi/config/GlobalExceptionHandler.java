@@ -2,6 +2,7 @@ package com.anita.multipleauthapi.config;
 
 import com.anita.multipleauthapi.model.error.BadRequestException;
 import com.anita.multipleauthapi.model.error.ErrorMessage;
+import com.anita.multipleauthapi.model.error.UserAlreadyExistsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,4 +43,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(errorMessage);
     }
 
+    @ExceptionHandler
+    public ResponseEntity<ErrorMessage> handleUserAlreadyExistsException(UserAlreadyExistsException e) {
+        ErrorMessage errorMessage = new ErrorMessage(
+                e.getMessage(),
+                HttpStatus.CONFLICT
+        );
+
+        log.error("UserAlreadyExistsException: ", e);
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(errorMessage);
+    }
 }
