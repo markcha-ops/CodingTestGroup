@@ -340,9 +340,9 @@ function LectureDetail() {
                                                       */}
                                                     {parse(`<iframe 
                                                         src="${pdfUrl}"
-     width="100%"
-     height="600px"
-     id="gamma-embed"
+                                                        width="100%"
+                                                        height="900px"
+                                                        id="gamma-embed"
                                                         class="gamma-embed"
                                                         style="display:block;position:relative;" 
                                                         allowfullscreen
