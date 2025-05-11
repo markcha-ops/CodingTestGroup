@@ -5,9 +5,10 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: node-01  # 특정 러너에서만 실행되도록 수정
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
