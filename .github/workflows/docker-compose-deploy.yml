@@ -18,8 +18,8 @@ jobs:
 
       - name: Build and deploy with Docker Compose
         run: |
-          docker-compose build
-          docker-compose up -d
+          docker compose build
+          docker compose up -d
 
       - name: Verify deployment
         run: |
