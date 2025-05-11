@@ -11,33 +11,23 @@ RUN mvn clean package -DskipTests
 RUN ls -la target/
 
 # Stage 2: Run the application
-FROM ubuntu:22.04
+FROM docker:24.0.5
 WORKDIR /app
+# Alpine 기반이므로 apk를 이용해 OpenJDK 설치
+RUN apk add --no-cache openjdk17-jdk
 
-# Install Java 17 JRE
-RUN apt-get update && apt-get install -y \
-    openjdk-17-jre \
-    curl \
-    gnupg \
-    lsb-release \
-    ca-certificates \
-    software-properties-common \
-    && rm -rf /var/lib/apt/lists/*
+# 작업 디렉토리
+WORKDIR /workspace
 
-# Install Docker engine
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-    $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
-    && apt-get update \
-    && apt-get install -y docker-ce-cli \
-    && rm -rf /var/lib/apt/lists/*
+# (선택) 프로젝트 소스 복사
+COPY . /workspace
 
-# Copy the jar file from the build stage with explicit name
+# 빌드 단계 (예: Maven or Gradle)
+# RUN ./mvnw package
 COPY --from=build /app/target/multiple-auth-api-0.0.1-SNAPSHOT.jar app.jar
-# Verify the JAR file exists
-RUN ls -la
-RUN mkdir -p /tmp/code-execution
-RUN chmod 777 /tmp/code-execution
+# 엔트리포인트: Java와 Docker 둘 다 사용 가능
+ENTRYPOINT ["sh", "-c"]
+CMD ["java -jar app.jar & docker ps"]
 # Expose the port
 EXPOSE 8080
 

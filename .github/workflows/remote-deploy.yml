@@ -1,52 +1,52 @@
 # name: Remote Server Deployment
 
-# on:
-#   push:
-#     branches: [ main ]
-#   workflow_dispatch:  # 수동 트리거 옵션 추가
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # 수동 트리거 옵션 추가
 
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v3
+jobs:
+  deploy:
+    runs-on: node-01  # 특정 러너에서만 실행되도록 수정
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-#       - name: Set up SSH
-#         uses: webfactory/ssh-agent@v0.7.0
-#         with:
-#           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-#       - name: Add known hosts
-#         run: |
-#           mkdir -p ~/.ssh
-#           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+      - name: Add known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-#       - name: Deploy to remote server
-#         env:
-#           SSH_USER: ${{ secrets.SSH_USER }}
-#           SSH_HOST: ${{ secrets.SSH_HOST }}
-#           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-#         run: |
-#           # 원격 서버로 프로젝트 파일 복사
-#           rsync -avz --exclude='.git' --exclude='.github' ./ $SSH_USER@$SSH_HOST:$DEPLOY_PATH
+      - name: Deploy to remote server
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          # 원격 서버로 프로젝트 파일 복사
+          rsync -avz --exclude='.git' --exclude='.github' ./ $SSH_USER@$SSH_HOST:$DEPLOY_PATH
           
-#           # SSH로 원격 서버 접속하여 Docker Compose 실행
-#           ssh $SSH_USER@$SSH_HOST "cd $DEPLOY_PATH && \
-#             # 기존 컨테이너 중지 및 제거
-#             docker rm -f multiple-auth-api ui-react app_nginx-production222 || true && \
-#             docker-compose down || true && \
-#             # 새로운 컨테이너 빌드 및 시작
-#             docker-compose build && \
-#             docker-compose up -d && \
-#             # 컨테이너 상태 확인
-#             docker-compose ps"
+          # SSH로 원격 서버 접속하여 Docker Compose 실행
+          ssh $SSH_USER@$SSH_HOST "cd $DEPLOY_PATH && \
+            # 기존 컨테이너 중지 및 제거
+            docker rm -f multiple-auth-api ui-react app_nginx-production222 || true && \
+            docker-compose down || true && \
+            # 새로운 컨테이너 빌드 및 시작
+            docker-compose build && \
+            docker-compose up -d && \
+            # 컨테이너 상태 확인
+            docker-compose ps"
 
-#       - name: Verify deployment
-#         env:
-#           SSH_USER: ${{ secrets.SSH_USER }}
-#           SSH_HOST: ${{ secrets.SSH_HOST }}
-#           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-#         run: |
-#           # 배포 로그 확인
-#           ssh $SSH_USER@$SSH_HOST "cd $DEPLOY_PATH && docker-compose logs" 
+      - name: Verify deployment
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          # 배포 로그 확인
+          ssh $SSH_USER@$SSH_HOST "cd $DEPLOY_PATH && docker-compose logs" 
