@@ -23,7 +23,7 @@ jobs:
 
       - name: Verify deployment
         run: |
-          docker-compose ps
+          docker compose ps
           echo "Waiting for services to start..."
           sleep 20
           # 컨테이너 상태 확인
@@ -36,4 +36,4 @@ jobs:
         run: |
           echo "Cleaning up resources..."
           # 로그 캡처 (선택사항)
-          docker-compose logs > deployment-logs.txt 
+          docker compose logs > deployment-logs.txt 
