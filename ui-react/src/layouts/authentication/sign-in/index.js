@@ -26,6 +26,10 @@ import MuiLink from "@mui/material/Link";
 import api from "../../../api";
 // @mui icons
 import GoogleIcon from "@mui/icons-material/Google";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -55,6 +59,7 @@ function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -65,6 +70,14 @@ function Basic() {
   };
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -149,13 +162,27 @@ function Basic() {
             </MDBox>
             <MDBox mb={2}>
               <MDInput 
-                type="password" 
+                type={showPassword ? "text" : "password"}
                 name="password"
                 label="Password" 
                 value={formData.password}
                 onChange={handleChange}
                 fullWidth 
                 required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
               />
             </MDBox>
             <MDBox display="flex" alignItems="center" ml={-1}>
