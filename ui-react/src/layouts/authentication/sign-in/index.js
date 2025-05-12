@@ -87,9 +87,10 @@ function Basic() {
     try {
       const response = await api.post("/auth/login", formData);
       
-      // Store the token in localStorage or cookies
+      // Store the token in localStorage and cookies
       const token = response.data.accessToken;
       localStorage.setItem("token", token);
+      Cookies.set("accessToken", token, { expires: 7 }); // 7일 동안 유효하게 설정
       
       // Set Authorization header for future requests
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
