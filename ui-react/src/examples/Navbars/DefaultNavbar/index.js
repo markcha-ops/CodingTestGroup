@@ -53,6 +53,7 @@ function DefaultNavbar({ transparent, light, action }) {
   const [mobileNavbar, setMobileNavbar] = useState(false);
   const [mobileView, setMobileView] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const openMobileNavbar = ({ currentTarget }) => setMobileNavbar(currentTarget.parentNode);
   const closeMobileNavbar = () => setMobileNavbar(false);
@@ -83,15 +84,18 @@ function DefaultNavbar({ transparent, light, action }) {
   }, []);
 
   useEffect(() => {
-    // Check if user is admin from JWT token
+    // Check if user is logged in and if admin from JWT token
     const accessToken = Cookies.get("accessToken");
     if (accessToken) {
+      setIsLoggedIn(true);
       try {
         const decodedToken = jwtDecode(accessToken);
         setIsAdmin(decodedToken.rule === "ADMIN" || decodedToken.rule === "SYSTEM_ADMIN");
       } catch (error) {
         setIsAdmin(false);
       }
+    } else {
+      setIsLoggedIn(false);
     }
   }, []);
 
@@ -119,6 +123,27 @@ function DefaultNavbar({ transparent, light, action }) {
     } catch (error) {
       console.error("Error refreshing token:", error);
     }
+  };
+
+  const handleLogout = () => {
+    // Remove tokens from cookies
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
+    
+    // Remove from localStorage if stored there
+    localStorage.removeItem("token");
+    
+    // Clear Authorization header
+    if (axios.defaults.headers.common["Authorization"]) {
+      delete axios.defaults.headers.common["Authorization"];
+    }
+    
+    // Update state
+    setIsLoggedIn(false);
+    setIsAdmin(false);
+    
+    // Redirect to home page
+    navigate("/");
   };
 
   return (
@@ -184,12 +209,21 @@ function DefaultNavbar({ transparent, light, action }) {
 
         <MDBox color="inherit" display={{ xs: "none", lg: "flex" }} m={0} p={0}>
           <DefaultNavbarLink icon="person" name="profile" route="/profile" light={light} />
-          <DefaultNavbarLink
-            icon="key"
-            name="sign in"
-            route="/authentication/sign-in"
-            light={light}
-          />
+          {isLoggedIn ? (
+            <DefaultNavbarLink
+              icon="logout"
+              name="sign out"
+              onClick={handleLogout}
+              light={light}
+            />
+          ) : (
+            <DefaultNavbarLink
+              icon="key"
+              name="sign in"
+              route="/authentication/sign-in"
+              light={light}
+            />
+          )}
         </MDBox>
 
         <MDBox

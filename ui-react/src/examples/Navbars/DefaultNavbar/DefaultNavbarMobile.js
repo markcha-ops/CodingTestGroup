@@ -35,20 +35,46 @@ import axios from "axios";
 function DefaultNavbarMobile({ open, close }) {
   const { width } = open && open.getBoundingClientRect();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is admin from JWT token
+    // Check if user is logged in and if admin from JWT token
     const accessToken = Cookies.get("accessToken");
     if (accessToken) {
+      setIsLoggedIn(true);
       try {
         const decodedToken = jwtDecode(accessToken);
         setIsAdmin(decodedToken.rule === "ADMIN" || decodedToken.rule === "SYSTEM_ADMIN");
       } catch (error) {
         setIsAdmin(false);
       }
+    } else {
+      setIsLoggedIn(false);
     }
   }, []);
+
+  const handleLogout = () => {
+    // Remove tokens from cookies
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
+    
+    // Remove from localStorage if stored there
+    localStorage.removeItem("token");
+    
+    // Clear Authorization header
+    if (axios.defaults.headers.common["Authorization"]) {
+      delete axios.defaults.headers.common["Authorization"];
+    }
+    
+    // Update state
+    setIsLoggedIn(false);
+    setIsAdmin(false);
+    
+    // Close menu and redirect to home page
+    close();
+    navigate("/");
+  };
 
   const handleLectureMove = async () => {
     try {
@@ -99,7 +125,11 @@ function DefaultNavbarMobile({ open, close }) {
           <DefaultNavbarLink icon="manage" name="강좌 관리" route="/course-manage" />
         )}
         <DefaultNavbarLink icon="person" name="profile" route="/profile" />
-        <DefaultNavbarLink icon="key" name="sign in" route="/authentication/sign-in" />
+        {isLoggedIn ? (
+          <DefaultNavbarLink icon="logout" name="sign out" onClick={handleLogout} />
+        ) : (
+          <DefaultNavbarLink icon="key" name="sign in" route="/authentication/sign-in" />
+        )}
       </MDBox>
     </Menu>
   );
