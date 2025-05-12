@@ -72,9 +72,7 @@ function Cover() {
         email: formData.email,
         firstname: formData.firstname,
         lastname: formData.lastname,
-        password: formData.password,
-        authority: "USER",
-        provider: "local"
+        password: formData.password
       };
       
       await api.post("/api/user", userData);
