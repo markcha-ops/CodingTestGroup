@@ -295,12 +295,12 @@ function DevTool() {
                                     </MDBox>
                                 ) : executionResult ? (
                                     <MDBox>
-                                        <Alert 
-                                            severity={executionResult.success ? "success" : "error"} 
-                                            sx={{ mb: 2 }}
-                                        >
-                                            {executionResult.success ? "실행 성공" : "실행 실패"}
-                                        </Alert>
+                                                                <Alert 
+                            severity={executionResult.successful ? "success" : "error"} 
+                            sx={{ mb: 2 }}
+                        >
+                            {executionResult.successful ? "실행 성공" : "실행 실패"}
+                        </Alert>
                                         
                                         {executionResult.output && (
                                             <MDBox 
