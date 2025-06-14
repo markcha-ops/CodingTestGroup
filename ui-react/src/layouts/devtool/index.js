@@ -52,12 +52,12 @@ function DevTool() {
     
     // Language options
     const languageOptions = [
-        { value: 'JAVA', label: 'Java', template: 'public class Solution {\n    public static void main(String[] args) {\n        // Your code here\n        System.out.println("Hello, World!");\n    }\n}' },
-        { value: 'C', label: 'C', template: '#include <stdio.h>\n\nint main() {\n    // Your code here\n    printf("Hello, World!\\n");\n    return 0;\n}' },
+        // { value: 'JAVA', label: 'Java', template: 'public class Solution {\n    public static void main(String[] args) {\n        // Your code here\n        System.out.println("Hello, World!");\n    }\n}' },
+        // { value: 'C', label: 'C', template: '#include <stdio.h>\n\nint main() {\n    // Your code here\n    printf("Hello, World!\\n");\n    return 0;\n}' },
         { value: 'PYTHON', label: 'Python', template: '# Your code here\nprint("Hello, World!")' },
-        { value: 'CPP', label: 'C++', template: '#include <iostream>\n\nint main() {\n    // Your code here\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}' },
-        { value: 'JAVASCRIPT', label: 'JavaScript', template: '// Your code here\nconsole.log("Hello, World!");' },
-        { value: 'SQL', label: 'SQL', template: '-- Your SQL query here\nSELECT "Hello, World!" AS greeting;' },
+        // { value: 'CPP', label: 'C++', template: '#include <iostream>\n\nint main() {\n    // Your code here\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}' },
+        // { value: 'JAVASCRIPT', label: 'JavaScript', template: '// Your code here\nconsole.log("Hello, World!");' },
+        // { value: 'SQL', label: 'SQL', template: '-- Your SQL query here\nSELECT "Hello, World!" AS greeting;' },
     ];
     
     // Set initial code based on default language

@@ -164,13 +164,13 @@ function CodingPage() {
     // Language mapping for Monaco Editor
     const getMonacoLanguage = (lang) => {
         const languageMap = {
-            'JAVA': 'java',
-            'C': 'c',
-            'CPP': 'cpp',
+            // 'JAVA': 'java',
+            // 'C': 'c',
+            // 'CPP': 'cpp',
             'PYTHON': 'python',
-            'JAVASCRIPT': 'javascript',
-            'TYPESCRIPT': 'typescript',
-            'SQL': 'sql'
+            // 'JAVASCRIPT': 'javascript',
+            // 'TYPESCRIPT': 'typescript',
+            // 'SQL': 'sql'
         };
         return languageMap[lang] || 'plaintext';
     };

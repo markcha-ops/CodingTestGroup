@@ -61,22 +61,22 @@ function Question() {
     const [successMessage, setSuccessMessage] = useState('');
     
     const programmingLanguages = [
-        { value: 'JAVA', label: 'Java' },
-        { value: 'C', label: 'C' },
+        // { value: 'JAVA', label: 'Java' },
+        // { value: 'C', label: 'C' },
         { value: 'PYTHON', label: 'Python' },
-        { value: 'CPP', label: 'C++' },
-        { value: 'SQL', label: 'SQL' },
-        { value: 'JAVASCRIPT', label: 'JavaScript' },
-        { value: 'TYPESCRIPT', label: 'TypeScript' },
-        { value: 'KOTLIN', label: 'Kotlin' },
-        { value: 'SWIFT', label: 'Swift' },
-        { value: 'RUBY', label: 'Ruby' },
-        { value: 'PHP', label: 'PHP' },
-        { value: 'RUST', label: 'Rust' },
-        { value: 'GOLANG', label: 'Go' },
-        { value: 'SCALA', label: 'Scala' },
-        { value: 'HASKELL', label: 'Haskell' },
-        { value: 'ELIXIR', label: 'Elixir' }
+        // { value: 'CPP', label: 'C++' },
+        // { value: 'SQL', label: 'SQL' },
+        // { value: 'JAVASCRIPT', label: 'JavaScript' },
+        // { value: 'TYPESCRIPT', label: 'TypeScript' },
+        // { value: 'KOTLIN', label: 'Kotlin' },
+        // { value: 'SWIFT', label: 'Swift' },
+        // { value: 'RUBY', label: 'Ruby' },
+        // { value: 'PHP', label: 'PHP' },
+        // { value: 'RUST', label: 'Rust' },
+        // { value: 'GOLANG', label: 'Go' },
+        // { value: 'SCALA', label: 'Scala' },
+        // { value: 'HASKELL', label: 'Haskell' },
+        // { value: 'ELIXIR', label: 'Elixir' }
     ];
     
     // Create an array of difficulty levels from 1 to 15
