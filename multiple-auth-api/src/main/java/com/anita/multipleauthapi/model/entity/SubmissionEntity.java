@@ -20,13 +20,11 @@ public class SubmissionEntity {
     @Column(name = "submission_id")
     private UUID id;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
-    private UserEntity user;
+    @Column(name = "user_id")
+    private UUID userId;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "question_id", referencedColumnName = "question_id")
-    private QuestionEntity question;
+    @Column(name = "question_id")
+    private UUID questionId;
     
     @Column(name = "code", columnDefinition = "TEXT")
     private String code;
@@ -58,31 +56,6 @@ public class SubmissionEntity {
     
     @Column(name = "updated_at")
     private String updatedAt;
-    
-    // Convenience methods for backward compatibility
-    public UUID getUserId() {
-        return user != null ? user.getId() : null;
-    }
-    
-    public void setUserId(UUID userId) {
-        if (userId != null) {
-            this.user = UserEntity.builder().id(userId).build();
-        } else {
-            this.user = null;
-        }
-    }
-    
-    public UUID getQuestionId() {
-        return question != null ? question.getId() : null;
-    }
-    
-    public void setQuestionId(UUID questionId) {
-        if (questionId != null) {
-            this.question = QuestionEntity.builder().id(questionId).build();
-        } else {
-            this.question = null;
-        }
-    }
     
     @PrePersist
     public void generateUUID() {

@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -62,10 +61,6 @@ public class QuestionEntity {
     
     @Column(name = "updated_at")
     private String updatedAt;
-
-    // OneToMany relationship with SubmissionEntity
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<SubmissionEntity> submissions;
 
     @PrePersist
     public void generateUUID() {
