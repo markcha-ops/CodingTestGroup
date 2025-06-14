@@ -638,12 +638,16 @@ function CodingPage() {
                                         ) : submissionResult ? (
                                             <MDBox>
                                                 {/* 정답/오답 판정 */}
-                                                {submissionResult.output !== undefined && submissionResult.expectedOutput !== undefined && (
+                                                {submissionResult.output && submissionResult.expectedOutput ? (
                                                     <Alert 
-                                                        severity={submissionResult.output === submissionResult.expectedOutput ? "success" : "error"} 
+                                                        severity={submissionResult.output.trim() === submissionResult.expectedOutput.trim() ? "success" : "error"} 
                                                         sx={{ mb: 2 }}
                                                     >
-                                                        {submissionResult.output === submissionResult.expectedOutput ? "정답입니다!" : "오답입니다."}
+                                                        {submissionResult.output.trim() === submissionResult.expectedOutput.trim() ? "🎉 정답입니다!" : "❌ 오답입니다."}
+                                                    </Alert>
+                                                ) : (
+                                                    <Alert severity="info" sx={{ mb: 2 }}>
+                                                        제출이 완료되었습니다.
                                                     </Alert>
                                                 )}
                                                 
