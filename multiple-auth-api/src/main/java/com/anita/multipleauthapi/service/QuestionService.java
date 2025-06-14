@@ -1,15 +1,26 @@
 package com.anita.multipleauthapi.service;
 
 import com.anita.multipleauthapi.controller.request.LanguageType;
+import com.anita.multipleauthapi.model.entity.CourseEntity;
 import com.anita.multipleauthapi.model.entity.QuestionEntity;
+import com.anita.multipleauthapi.model.entity.RelationsEntity;
+import com.anita.multipleauthapi.model.entity.UserEntity;
+import com.anita.multipleauthapi.model.enums.EntityType;
+import com.anita.multipleauthapi.model.enums.RelationsType;
+import com.anita.multipleauthapi.model.enums.StatusType;
 import com.anita.multipleauthapi.model.payload.QuestionRequest;
 import com.anita.multipleauthapi.model.payload.QuestionResponse;
+import com.anita.multipleauthapi.repository.CourseEntityRepository;
 import com.anita.multipleauthapi.repository.QuestionRepository;
+import com.anita.multipleauthapi.repository.RelationsEntityRepository;
+import com.anita.multipleauthapi.repository.UserRepository;
+import com.anita.multipleauthapi.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -18,7 +29,13 @@ public class QuestionService {
     
     @Autowired
     private QuestionRepository questionRepository;
-    
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private CourseEntityRepository courseEntityRepository;
+    @Autowired
+    private RelationsEntityRepository relationsEntityRepository;
+
     /**
      * Get all questions
      * @return List of all questions
@@ -99,21 +116,43 @@ public class QuestionService {
      * @param questionRequest The question request data
      * @return The created question
      */
-    public QuestionResponse createQuestion(QuestionRequest questionRequest, UUID createdBy) {
-        QuestionEntity questionEntity = QuestionEntity.builder()
-                .title(questionRequest.getTitle())
-                .content(questionRequest.getContent())
-                .language(questionRequest.getLanguage())
-                .lv(questionRequest.getLv())
-                .answer(questionRequest.getAnswer())
-                .initialCode(questionRequest.getInitialCode())
-                .isCompare(questionRequest.getIsCompare())
-                .compareCode(questionRequest.getCompareCode())
-                .createdBy(createdBy)
-                .build();
-        
-        QuestionEntity savedQuestion = questionRepository.save(questionEntity);
-        return mapToQuestionResponse(savedQuestion);
+    public QuestionResponse createQuestion(QuestionRequest questionRequest, UserPrincipal createdBy) {
+        Optional<UserEntity> optionalUserEntity = userRepository.findById(createdBy.getId());
+        Optional<CourseEntity> optionalCourseEntity = courseEntityRepository.findById(createdBy.getCourseId());
+
+        if (optionalUserEntity.isPresent()) {
+            if (optionalCourseEntity.isPresent()) {
+                CourseEntity courseEntity = optionalCourseEntity.get();
+                QuestionEntity questionEntity = QuestionEntity.builder()
+                        .title(questionRequest.getTitle())
+                        .content(questionRequest.getContent())
+                        .language(questionRequest.getLanguage())
+                        .lv(questionRequest.getLv())
+                        .answer(questionRequest.getAnswer())
+                        .initialCode(questionRequest.getInitialCode())
+                        .isCompare(questionRequest.getIsCompare())
+                        .compareCode(questionRequest.getCompareCode())
+                        .createdBy(createdBy.getId())
+                        .build();
+
+                QuestionEntity savedQuestion = questionRepository.save(questionEntity);
+
+                relationsEntityRepository.save(RelationsEntity.builder()
+                        .fromId(savedQuestion.getId())
+                        .fromType(EntityType.USER)
+                        .toId(courseEntity.getId())
+                        .status(StatusType.APPROVED)
+                        .toType(EntityType.COURSE)
+                        .relationType(RelationsType.CONTAINS_TYPE)
+                        .build());
+                return mapToQuestionResponse(savedQuestion);
+            } else {
+                throw new RuntimeException("Course id " + createdBy.getCourseId() + " does not exist");
+            }
+        } else {
+            throw new RuntimeException("User not found");
+        }
+
     }
     
     /**

@@ -49,7 +49,7 @@ public class QuestionController {
             @RequestBody QuestionRequest questionRequest,
             @CurrentUser UserPrincipal userPrincipal) {
         QuestionResponse createdQuestion = questionService.createQuestion(
-                questionRequest, userPrincipal.getId());
+                questionRequest, userPrincipal);
         return ResponseEntity.ok(createdQuestion);
     }
     
