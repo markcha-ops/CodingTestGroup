@@ -236,6 +236,7 @@ public class QuestionService {
                 .lv(entity.getLv())
                 .answer(entity.getAnswer())
                 .initialCode(entity.getInitialCode())
+                .pass(entity.getPass())
                 .isCompare(entity.getIsCompare())
                 .compareCode(entity.getCompareCode())
                 .createdBy(entity.getCreatedBy())
