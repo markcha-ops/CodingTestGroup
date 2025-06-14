@@ -117,6 +117,33 @@ public class QuestionService {
     }
     
     /**
+     * Update a question by its ID
+     * @param questionId The ID of the question to update
+     * @param questionRequest The updated question data
+     * @param userId The ID of the user updating the question
+     * @return The updated question response
+     * @throws RuntimeException if the question doesn't exist
+     */
+    public QuestionResponse updateQuestion(UUID questionId, QuestionRequest questionRequest, UUID userId) {
+        QuestionEntity existingQuestion = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found with ID: " + questionId));
+        
+        // Update the question fields
+        existingQuestion.setTitle(questionRequest.getTitle());
+        existingQuestion.setContent(questionRequest.getContent());
+        existingQuestion.setLanguage(questionRequest.getLanguage());
+        existingQuestion.setLv(questionRequest.getLv());
+        existingQuestion.setAnswer(questionRequest.getAnswer());
+        existingQuestion.setInitialCode(questionRequest.getInitialCode());
+        existingQuestion.setIsCompare(questionRequest.getIsCompare());
+        existingQuestion.setCompareCode(questionRequest.getCompareCode());
+        existingQuestion.setUpdatedAt(String.valueOf(System.currentTimeMillis()));
+        
+        QuestionEntity updatedQuestion = questionRepository.save(existingQuestion);
+        return mapToQuestionResponse(updatedQuestion);
+    }
+    
+    /**
      * Delete a question by its ID
      * @param questionId The ID of the question to delete
      */

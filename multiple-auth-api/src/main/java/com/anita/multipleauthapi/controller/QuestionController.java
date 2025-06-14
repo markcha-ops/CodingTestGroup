@@ -54,6 +54,19 @@ public class QuestionController {
     }
     
     /**
+     * Update a question by ID
+     */
+    @PutMapping("/questions/{questionId}")
+    public ResponseEntity<QuestionResponse> updateQuestion(
+            @PathVariable UUID questionId,
+            @RequestBody QuestionRequest questionRequest,
+            @CurrentUser UserPrincipal userPrincipal) {
+        QuestionResponse updatedQuestion = questionService.updateQuestion(
+                questionId, questionRequest, userPrincipal.getId());
+        return ResponseEntity.ok(updatedQuestion);
+    }
+    
+    /**
      * Delete a question by ID
      */
     @DeleteMapping("/questions/{questionId}")
