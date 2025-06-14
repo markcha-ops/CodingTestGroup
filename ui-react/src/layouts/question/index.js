@@ -28,6 +28,8 @@ import MDAlert from "components/MDAlert";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import InfoIcon from "@mui/icons-material/Info";
+import Chip from "@mui/material/Chip";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -146,6 +148,7 @@ function Question() {
             });
             
             setQuestionSolved(response.data);
+            console.log('Question status checked:', response.data ? 'SOLVED' : 'NOT SOLVED');
         } catch (err) {
             console.error('Failed to check question status:', err);
             // 상태 확인 실패 시 기본값으로 설정
@@ -272,37 +275,10 @@ function Question() {
         <DashboardLayout>
             <DashboardNavbar />
             <MDBox mt={2} mb={3}>
-                <MDBox mb={2} display="flex" alignItems="center" justifyContent="space-between">
+                <MDBox mb={2}>
                     <MDTypography variant="h4" fontWeight="medium">
                         코딩 문제 {questionId ? '수정' : '생성'}
                     </MDTypography>
-                    
-                    {questionId && (
-                        <MDBox display="flex" alignItems="center">
-                            {checkingStatus ? (
-                                <CircularProgress size={20} />
-                            ) : (
-                                <>
-                                    {questionSolved ? (
-                                        <CheckCircleIcon sx={{ color: 'success.main', mr: 1 }} />
-                                    ) : (
-                                        <RadioButtonUncheckedIcon sx={{ color: 'text.secondary', mr: 1 }} />
-                                    )}
-                                    <MDTypography variant="body2" color={questionSolved ? "success" : "text"} sx={{ mr: 1 }}>
-                                        {questionSolved ? "해결됨" : "미해결"}
-                                    </MDTypography>
-                                    <Button
-                                        size="small"
-                                        onClick={checkQuestionStatus}
-                                        disabled={checkingStatus}
-                                        sx={{ minWidth: 'auto', p: 0.5 }}
-                                    >
-                                        <RefreshIcon fontSize="small" />
-                                    </Button>
-                                </>
-                            )}
-                        </MDBox>
-                    )}
                 </MDBox>
                 
                 {successMessage && (
@@ -315,6 +291,63 @@ function Question() {
                     <MDAlert color="warning" my={2}>
                         {error}
                     </MDAlert>
+                )}
+
+                {/* Question Status Card - Only show when editing existing question */}
+                {questionId && (
+                    <Card sx={{ mb: 2, bgcolor: questionSolved ? 'success.light' : 'grey.100' }}>
+                        <CardContent sx={{ py: 2 }}>
+                            <MDBox display="flex" alignItems="center" justifyContent="space-between">
+                                <MDBox display="flex" alignItems="center">
+                                    {checkingStatus ? (
+                                        <>
+                                            <CircularProgress size={24} sx={{ mr: 2 }} />
+                                            <MDTypography variant="h6">
+                                                문제 해결 상태 확인 중...
+                                            </MDTypography>
+                                        </>
+                                    ) : (
+                                        <>
+                                            {questionSolved ? (
+                                                <CheckCircleIcon sx={{ color: 'success.main', mr: 2, fontSize: 28 }} />
+                                            ) : (
+                                                <InfoIcon sx={{ color: 'warning.main', mr: 2, fontSize: 28 }} />
+                                            )}
+                                            <MDBox>
+                                                <MDTypography variant="h6" fontWeight="medium">
+                                                    {questionSolved ? '✅ 이 문제는 해결되었습니다!' : '❌ 이 문제는 아직 해결되지 않았습니다'}
+                                                </MDTypography>
+                                                <MDTypography variant="body2" color="text" sx={{ mt: 0.5 }}>
+                                                    {questionSolved 
+                                                        ? '누군가가 이 문제에서 100점을 받았습니다.' 
+                                                        : '아직 아무도 이 문제에서 100점을 받지 못했습니다.'}
+                                                </MDTypography>
+                                            </MDBox>
+                                        </>
+                                    )}
+                                </MDBox>
+                                
+                                <MDBox display="flex" alignItems="center">
+                                    <Chip 
+                                        label={questionSolved ? "해결됨" : "미해결"} 
+                                        color={questionSolved ? "success" : "default"}
+                                        variant={questionSolved ? "filled" : "outlined"}
+                                        sx={{ mr: 1 }}
+                                    />
+                                    <MDButton
+                                        size="small"
+                                        variant="outlined"
+                                        color="info"
+                                        onClick={checkQuestionStatus}
+                                        disabled={checkingStatus}
+                                        sx={{ minWidth: 'auto', p: 1 }}
+                                    >
+                                        <RefreshIcon fontSize="small" />
+                                    </MDButton>
+                                </MDBox>
+                            </MDBox>
+                        </CardContent>
+                    </Card>
                 )}
 
                 <Card>
