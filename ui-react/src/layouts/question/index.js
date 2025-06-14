@@ -25,11 +25,6 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import MDAlert from "components/MDAlert";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
-import RefreshIcon from "@mui/icons-material/Refresh";
-import InfoIcon from "@mui/icons-material/Info";
-import Chip from "@mui/material/Chip";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -64,8 +59,6 @@ function Question() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
-    const [questionSolved, setQuestionSolved] = useState(false);
-    const [checkingStatus, setCheckingStatus] = useState(false);
     
     const programmingLanguages = [
         { value: 'JAVA', label: 'Java' },
@@ -105,7 +98,6 @@ function Question() {
     useEffect(() => {
         if (questionId) {
             fetchQuestionData();
-            checkQuestionStatus();
         }
     }, [questionId]);
 
@@ -134,27 +126,6 @@ function Question() {
             setError('문제 정보를 가져오는데 실패했습니다.');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const checkQuestionStatus = async () => {
-        if (!questionId) return;
-        
-        setCheckingStatus(true);
-        try {
-            const response = await api.post(`/api/submissions/questions/status/${questionId}`, {
-                code: "dummy",
-                language: "JAVA"
-            });
-            
-            setQuestionSolved(response.data);
-            console.log('Question status checked:', response.data ? 'SOLVED' : 'NOT SOLVED');
-        } catch (err) {
-            console.error('Failed to check question status:', err);
-            // 상태 확인 실패 시 기본값으로 설정
-            setQuestionSolved(false);
-        } finally {
-            setCheckingStatus(false);
         }
     };
 
@@ -258,11 +229,6 @@ function Question() {
                 setSuccessMessage('');
             }, 3000);
             
-            // 문제 수정 후 상태 다시 확인
-            if (questionId) {
-                checkQuestionStatus();
-            }
-            
         } catch (error) {
             console.error('문제 저장 실패:', error);
             setError('문제 정보 저장에 실패했습니다.');
@@ -291,63 +257,6 @@ function Question() {
                     <MDAlert color="warning" my={2}>
                         {error}
                     </MDAlert>
-                )}
-
-                {/* Question Status Card - Only show when editing existing question */}
-                {questionId && (
-                    <Card sx={{ mb: 2, bgcolor: questionSolved ? 'success.light' : 'grey.100' }}>
-                        <CardContent sx={{ py: 2 }}>
-                            <MDBox display="flex" alignItems="center" justifyContent="space-between">
-                                <MDBox display="flex" alignItems="center">
-                                    {checkingStatus ? (
-                                        <>
-                                            <CircularProgress size={24} sx={{ mr: 2 }} />
-                                            <MDTypography variant="h6">
-                                                문제 해결 상태 확인 중...
-                                            </MDTypography>
-                                        </>
-                                    ) : (
-                                        <>
-                                            {questionSolved ? (
-                                                <CheckCircleIcon sx={{ color: 'success.main', mr: 2, fontSize: 28 }} />
-                                            ) : (
-                                                <InfoIcon sx={{ color: 'warning.main', mr: 2, fontSize: 28 }} />
-                                            )}
-                                            <MDBox>
-                                                <MDTypography variant="h6" fontWeight="medium">
-                                                    {questionSolved ? '✅ 이 문제는 해결되었습니다!' : '❌ 이 문제는 아직 해결되지 않았습니다'}
-                                                </MDTypography>
-                                                <MDTypography variant="body2" color="text" sx={{ mt: 0.5 }}>
-                                                    {questionSolved 
-                                                        ? '누군가가 이 문제에서 100점을 받았습니다.' 
-                                                        : '아직 아무도 이 문제에서 100점을 받지 못했습니다.'}
-                                                </MDTypography>
-                                            </MDBox>
-                                        </>
-                                    )}
-                                </MDBox>
-                                
-                                <MDBox display="flex" alignItems="center">
-                                    <Chip 
-                                        label={questionSolved ? "해결됨" : "미해결"} 
-                                        color={questionSolved ? "success" : "default"}
-                                        variant={questionSolved ? "filled" : "outlined"}
-                                        sx={{ mr: 1 }}
-                                    />
-                                    <MDButton
-                                        size="small"
-                                        variant="outlined"
-                                        color="info"
-                                        onClick={checkQuestionStatus}
-                                        disabled={checkingStatus}
-                                        sx={{ minWidth: 'auto', p: 1 }}
-                                    >
-                                        <RefreshIcon fontSize="small" />
-                                    </MDButton>
-                                </MDBox>
-                            </MDBox>
-                        </CardContent>
-                    </Card>
                 )}
 
                 <Card>

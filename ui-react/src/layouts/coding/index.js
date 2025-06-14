@@ -17,10 +17,12 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Alert from "@mui/material/Alert";
+import Chip from "@mui/material/Chip";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import SendIcon from "@mui/icons-material/Send";
 import CodeIcon from "@mui/icons-material/Code";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { Resizable } from 're-resizable';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
 
@@ -65,6 +67,8 @@ function CodingPage() {
     const [submissionResult, setSubmissionResult] = useState(null);
     const [executing, setExecuting] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [questionSolved, setQuestionSolved] = useState(false);
+    const [statusLoading, setStatusLoading] = useState(false);
     
     // Language options
     const languageOptions = [
@@ -109,6 +113,9 @@ function CodingPage() {
                         const template = languageOptions.find(opt => opt.value === response.data.language)?.template || '';
                         setCode(template);
                     }
+                    
+                    // Check if question has been solved
+                    await checkQuestionStatus(questionId);
                 } else {
                     setError('문제 정보를 찾을 수 없습니다.');
                 }
@@ -124,6 +131,25 @@ function CodingPage() {
 
         fetchQuestionData();
     }, [questionId]);
+    
+    // Check question status (whether it has been solved with score 100)
+    const checkQuestionStatus = async (questionId) => {
+        setStatusLoading(true);
+        try {
+            const response = await api.post(`/api/submissions/questions/status/${questionId}`, {
+                code: "dummy", // API에서 요구하는 필수 필드
+                language: "JAVA" // API에서 요구하는 필수 필드
+            });
+            
+            setQuestionSolved(response.data === true);
+        } catch (err) {
+            console.error('Failed to check question status:', err);
+            // 상태 확인 실패는 치명적이지 않으므로 에러 표시하지 않음
+            setQuestionSolved(false);
+        } finally {
+            setStatusLoading(false);
+        }
+    };
     
     // Handle changes in language selection
     const handleLanguageChange = (event) => {
@@ -190,6 +216,11 @@ function CodingPage() {
             });
             
             setSubmissionResult(response.data);
+            
+            // If submission was successful with perfect score, update question status
+            if (response.data && response.data.score === 100) {
+                setQuestionSolved(true);
+            }
         } catch (err) {
             console.error('Failed to submit code:', err);
             setSubmissionResult({
@@ -310,11 +341,31 @@ function CodingPage() {
                             }}>
                                 <CardHeader 
                                     title={
-                                        <MDBox display="flex" alignItems="center">
-                                            <CodeIcon sx={{ mr: 1 }} />
-                                            <MDTypography variant="h5" fontWeight="medium">
-                                                {question.title}
-                                            </MDTypography>
+                                        <MDBox display="flex" alignItems="center" justifyContent="space-between">
+                                            <MDBox display="flex" alignItems="center">
+                                                <CodeIcon sx={{ mr: 1 }} />
+                                                <MDTypography variant="h5" fontWeight="medium">
+                                                    {question.title}
+                                                </MDTypography>
+                                            </MDBox>
+                                            {statusLoading ? (
+                                                <CircularProgress size={20} />
+                                            ) : questionSolved ? (
+                                                <Chip
+                                                    icon={<CheckCircleIcon />}
+                                                    label="해결됨"
+                                                    color="success"
+                                                    variant="filled"
+                                                    size="small"
+                                                />
+                                            ) : (
+                                                <Chip
+                                                    label="미해결"
+                                                    color="default"
+                                                    variant="outlined"
+                                                    size="small"
+                                                />
+                                            )}
                                         </MDBox>
                                     }
                                 />
