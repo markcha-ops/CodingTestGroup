@@ -24,9 +24,8 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
             "RelationsEntity r " +
             "WHERE q.id = r.fromId " +
             "AND r.toId = :courseId " +
-            "AND u.id = :userId" +
             "")
-    List<QuestionWithScoreResponse> findQuestionsWithScoreByCourseId(@Param("courseId") UUID courseId, @Param("userId") UUID userId);
+    List<QuestionWithScoreResponse> findQuestionsWithScoreByCourseId(@Param("courseId") UUID courseId);
 
     @Query("SELECT q FROM QuestionEntity q, RelationsEntity r " +
            "WHERE r.fromId = :courseId " +

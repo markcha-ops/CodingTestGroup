@@ -85,7 +85,7 @@ public class QuestionService {
                 questions = questionRepository.findByKeyword(keyword);
             } else {
                 // No filters, return all questions
-                List<QuestionWithScoreResponse> questionsWithScoreByCourseId = questionRepository.findQuestionsWithScoreByCourseId(courseEntity.getId(), userEntity.getId());
+                List<QuestionWithScoreResponse> questionsWithScoreByCourseId = questionRepository.findQuestionsWithScoreByCourseId(courseEntity.getId());
 
                 questions = questionsWithScoreByCourseId.stream()
                         .map(t-> {
