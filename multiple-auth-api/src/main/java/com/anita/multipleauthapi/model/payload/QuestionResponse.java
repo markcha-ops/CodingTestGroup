@@ -19,6 +19,7 @@ public class QuestionResponse {
     private String content;
     private LanguageType language;
     private Integer lv;
+    private Boolean pass;
     private String answer;
     private String initialCode;
     private Boolean isCompare;

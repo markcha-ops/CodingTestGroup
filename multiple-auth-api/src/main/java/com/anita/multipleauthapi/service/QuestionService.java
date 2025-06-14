@@ -91,6 +91,9 @@ public class QuestionService {
                         .map(t-> {
                             QuestionEntity question = t.getQuestion();
                             Integer score = t.getScore();
+                            if (score == null) {
+                                score = 0;
+                            }
                             question.setPass(score == 100 ? true : false);
                             return question;
                         }).toList();
