@@ -151,7 +151,7 @@ public class SubmissionService {
             // Create a new submission entity\
         SubmissionEntity submission = SubmissionEntity.builder()
                 .userId(userPrincipal.getId())
-                .questionId(question.getId())
+                .question(question)
                 .code(submissionRequest.getCode())
                 .language(submissionRequest.getLanguage())
                 .status("PENDING")
@@ -289,7 +289,7 @@ public class SubmissionService {
         return SubmissionResponse.builder()
                 .id(submission.getId())
                 .userId(submission.getUserId())
-                .questionId(submission.getQuestionId())
+//                .questionId(submission.getQuestion().getId())
                 .code(submission.getCode())
                 .language(submission.getLanguage())
                 .score(submission.getScore())

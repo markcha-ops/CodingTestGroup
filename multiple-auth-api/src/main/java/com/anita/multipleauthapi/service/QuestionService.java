@@ -11,10 +11,7 @@ import com.anita.multipleauthapi.model.enums.StatusType;
 import com.anita.multipleauthapi.model.payload.QuestionRequest;
 import com.anita.multipleauthapi.model.payload.QuestionResponse;
 import com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse;
-import com.anita.multipleauthapi.repository.CourseEntityRepository;
-import com.anita.multipleauthapi.repository.QuestionRepository;
-import com.anita.multipleauthapi.repository.RelationsEntityRepository;
-import com.anita.multipleauthapi.repository.UserRepository;
+import com.anita.multipleauthapi.repository.*;
 import com.anita.multipleauthapi.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,6 +33,8 @@ public class QuestionService {
     private CourseEntityRepository courseEntityRepository;
     @Autowired
     private RelationsEntityRepository relationsEntityRepository;
+    @Autowired
+    private SubmissionRepository submissionRepository;
 
     /**
      * Get all questions

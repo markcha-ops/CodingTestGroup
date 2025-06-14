@@ -22,9 +22,11 @@ public class SubmissionEntity {
     
     @Column(name = "user_id")
     private UUID userId;
-    
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_id")
     @Column(name = "question_id")
-    private UUID questionId;
+    private QuestionEntity question;
     
     @Column(name = "code", columnDefinition = "TEXT")
     private String code;
