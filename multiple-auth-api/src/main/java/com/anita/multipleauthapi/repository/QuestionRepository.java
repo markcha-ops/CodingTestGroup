@@ -2,6 +2,7 @@ package com.anita.multipleauthapi.repository;
 
 import com.anita.multipleauthapi.controller.request.LanguageType;
 import com.anita.multipleauthapi.model.entity.QuestionEntity;
+import com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,9 +17,10 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
     
     List<QuestionEntity> findByCreatedBy(UUID userId);
 
-    @Query("SELECT q FROM QuestionEntity q, RelationsEntity r WHERE " +
-            "q.id = r.fromId AND r.fromId = :courseId")
-    List<QuestionEntity> findByCourseIds(@Param("courseId") UUID courseId);
+    @Query("SELECT NEW com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse(q, s.score) " +
+           "FROM QuestionEntity q, RelationsEntity r, SubmissionEntity s WHERE " +
+           "q.id = r.fromId AND r.toId = :courseId")
+    List<QuestionWithScoreResponse> findQuestionsWithScoreByCourseId(@Param("courseId") UUID courseId);
 
     @Query("SELECT q FROM QuestionEntity q, RelationsEntity r " +
            "WHERE r.fromId = :courseId " +
@@ -40,8 +42,7 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
            "q.content LIKE CONCAT('%', :keyword, '%')")
     List<QuestionEntity> findByKeyword(@Param("keyword") String keyword);
     
-    @Query("SELECT q FROM QuestionEntity q, RelationsEntity r WHERE " +
-            "q.id = r.fromId AND " +
+    @Query("SELECT q FROM QuestionEntity q WHERE " +
            "q.language = :language AND " +
            "(q.title LIKE CONCAT('%', :keyword, '%') OR " +
            "q.content LIKE CONCAT('%', :keyword, '%'))")

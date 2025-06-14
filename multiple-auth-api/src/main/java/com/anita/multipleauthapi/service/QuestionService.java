@@ -10,6 +10,7 @@ import com.anita.multipleauthapi.model.enums.RelationsType;
 import com.anita.multipleauthapi.model.enums.StatusType;
 import com.anita.multipleauthapi.model.payload.QuestionRequest;
 import com.anita.multipleauthapi.model.payload.QuestionResponse;
+import com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse;
 import com.anita.multipleauthapi.repository.CourseEntityRepository;
 import com.anita.multipleauthapi.repository.QuestionRepository;
 import com.anita.multipleauthapi.repository.RelationsEntityRepository;
@@ -85,7 +86,15 @@ public class QuestionService {
                 questions = questionRepository.findByKeyword(keyword);
             } else {
                 // No filters, return all questions
-                questions = questionRepository.findByCourseIds(courseEntity.getId());
+                List<QuestionWithScoreResponse> questionsWithScoreByCourseId = questionRepository.findQuestionsWithScoreByCourseId(courseEntity.getId());
+
+                questions = questionsWithScoreByCourseId.stream()
+                        .map(t-> {
+                            QuestionEntity question = t.getQuestion();
+                            Integer score = t.getScore();
+                            question.setPass(score == 100 ? true : false);
+                            return question;
+                        }).toList();
             }
 
             return questions.stream()

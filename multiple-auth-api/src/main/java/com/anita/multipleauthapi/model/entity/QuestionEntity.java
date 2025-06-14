@@ -61,6 +61,8 @@ public class QuestionEntity {
     
     @Column(name = "updated_at")
     private String updatedAt;
+    @Transient
+    private Boolean pass;
 
     @PrePersist
     public void generateUUID() {
