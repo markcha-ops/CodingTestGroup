@@ -52,6 +52,7 @@ import SignUp from "layouts/authentication/sign-up";
 import Question from "layouts/question";
 import CodingPage from "layouts/coding";
 import QuestionList from "layouts/question-list";
+import QuestionProblems from "layouts/question-problems";
 import CourseStudents from "layouts/course-students";
 import LectureList from "layouts/lecture-list";
 
@@ -88,6 +89,15 @@ const routes = [
     icon: <Icon fontSize="small">list_alt</Icon>,
     route: "/lecture-list",
     component: <LectureList />,
+    hide: false,
+  },
+  {
+    type: "collapse",
+    name: "코딩 문제",
+    key: "question-problems",
+    icon: <Icon fontSize="small">quiz</Icon>,
+    route: "/question-problems",
+    component: <QuestionProblems />,
     hide: false,
   },
   {
