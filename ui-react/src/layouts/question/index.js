@@ -25,6 +25,9 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import MDAlert from "components/MDAlert";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -59,6 +62,8 @@ function Question() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
+    const [questionSolved, setQuestionSolved] = useState(false);
+    const [checkingStatus, setCheckingStatus] = useState(false);
     
     const programmingLanguages = [
         { value: 'JAVA', label: 'Java' },
@@ -98,6 +103,7 @@ function Question() {
     useEffect(() => {
         if (questionId) {
             fetchQuestionData();
+            checkQuestionStatus();
         }
     }, [questionId]);
 
@@ -126,6 +132,26 @@ function Question() {
             setError('문제 정보를 가져오는데 실패했습니다.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const checkQuestionStatus = async () => {
+        if (!questionId) return;
+        
+        setCheckingStatus(true);
+        try {
+            const response = await api.post(`/api/submissions/questions/status/${questionId}`, {
+                code: "dummy",
+                language: "JAVA"
+            });
+            
+            setQuestionSolved(response.data);
+        } catch (err) {
+            console.error('Failed to check question status:', err);
+            // 상태 확인 실패 시 기본값으로 설정
+            setQuestionSolved(false);
+        } finally {
+            setCheckingStatus(false);
         }
     };
 
@@ -229,6 +255,11 @@ function Question() {
                 setSuccessMessage('');
             }, 3000);
             
+            // 문제 수정 후 상태 다시 확인
+            if (questionId) {
+                checkQuestionStatus();
+            }
+            
         } catch (error) {
             console.error('문제 저장 실패:', error);
             setError('문제 정보 저장에 실패했습니다.');
@@ -241,10 +272,37 @@ function Question() {
         <DashboardLayout>
             <DashboardNavbar />
             <MDBox mt={2} mb={3}>
-                <MDBox mb={2}>
+                <MDBox mb={2} display="flex" alignItems="center" justifyContent="space-between">
                     <MDTypography variant="h4" fontWeight="medium">
                         코딩 문제 {questionId ? '수정' : '생성'}
                     </MDTypography>
+                    
+                    {questionId && (
+                        <MDBox display="flex" alignItems="center">
+                            {checkingStatus ? (
+                                <CircularProgress size={20} />
+                            ) : (
+                                <>
+                                    {questionSolved ? (
+                                        <CheckCircleIcon sx={{ color: 'success.main', mr: 1 }} />
+                                    ) : (
+                                        <RadioButtonUncheckedIcon sx={{ color: 'text.secondary', mr: 1 }} />
+                                    )}
+                                    <MDTypography variant="body2" color={questionSolved ? "success" : "text"} sx={{ mr: 1 }}>
+                                        {questionSolved ? "해결됨" : "미해결"}
+                                    </MDTypography>
+                                    <Button
+                                        size="small"
+                                        onClick={checkQuestionStatus}
+                                        disabled={checkingStatus}
+                                        sx={{ minWidth: 'auto', p: 0.5 }}
+                                    >
+                                        <RefreshIcon fontSize="small" />
+                                    </Button>
+                                </>
+                            )}
+                        </MDBox>
+                    )}
                 </MDBox>
                 
                 {successMessage && (

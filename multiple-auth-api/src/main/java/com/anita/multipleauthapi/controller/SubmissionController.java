@@ -4,6 +4,7 @@ import com.anita.multipleauthapi.controller.request.DebugRequest;
 import com.anita.multipleauthapi.controller.request.LanguageType;
 import com.anita.multipleauthapi.controller.request.SubmissionRequest;
 import com.anita.multipleauthapi.model.payload.DebugResponse;
+import com.anita.multipleauthapi.model.payload.QuestionStatusResponse;
 import com.anita.multipleauthapi.model.payload.SubmissionResponse;
 import com.anita.multipleauthapi.security.CurrentUser;
 import com.anita.multipleauthapi.security.UserPrincipal;
@@ -44,7 +45,24 @@ public class SubmissionController {
         
         return ResponseEntity.ok(response);
     }
-    
+    /**
+     * Check if there exists any submission with perfect score (100) for the given question
+     * 
+     * @param userPrincipal Current authenticated user
+     * @param questionId Question ID
+     * @param submissionRequest Code submission request (not used but kept for API consistency)
+     * @return Response indicating whether any submission with score 100 exists for the question
+     */
+    @PostMapping("/questions/status/{questionId}")
+    public ResponseEntity<?> submistCode(
+            @CurrentUser UserPrincipal userPrincipal,
+            @PathVariable UUID questionId,
+            @RequestBody SubmissionRequest submissionRequest) {
+
+        boolean hasScore100 = submissionService.hasQuestionBeenSolvedPerfectly(questionId);
+        
+        return ResponseEntity.ok(hasScore100);
+    }
     /**
      * Debug code without submitting or saving
      * 

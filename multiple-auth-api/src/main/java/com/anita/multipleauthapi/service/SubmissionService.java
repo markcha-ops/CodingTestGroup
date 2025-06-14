@@ -133,7 +133,8 @@ public class SubmissionService {
                     .build();
         }
     }
-    
+
+
     /**
      * Process a code submission and grade it
      * 
@@ -266,6 +267,16 @@ public class SubmissionService {
         return submissions.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * Check if there exists any submission with perfect score (100) for the given question
+     * 
+     * @param questionId Question ID
+     * @return true if any submission exists with score 100 for the given question
+     */
+    public boolean hasQuestionBeenSolvedPerfectly(UUID questionId) {
+        return submissionRepository.existsByQuestionIdAndScore(questionId, 100);
     }
     
     /**

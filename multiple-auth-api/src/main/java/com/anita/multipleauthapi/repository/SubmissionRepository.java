@@ -14,4 +14,12 @@ public interface SubmissionRepository extends JpaRepository<SubmissionEntity, UU
     List<SubmissionEntity> findByQuestionId(UUID questionId);
     
     List<SubmissionEntity> findByUserIdAndQuestionId(UUID userId, UUID questionId);
+    
+    /**
+     * Check if there exists any submission with the given questionId and score
+     * @param questionId Question ID
+     * @param score Score to check for
+     * @return true if any submission exists with the given questionId and score
+     */
+    boolean existsByQuestionIdAndScore(UUID questionId, Integer score);
 } 
