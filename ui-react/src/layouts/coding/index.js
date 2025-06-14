@@ -577,10 +577,10 @@ function CodingPage() {
                                         ) : executionResult ? (
                                             <MDBox>
                                                 <Alert 
-                                                    severity={executionResult.success ? "success" : "error"} 
+                                                    severity={executionResult.successful ? "success" : "error"} 
                                                     sx={{ mb: 2 }}
                                                 >
-                                                    {executionResult.success ? "실행 성공" : "실행 실패"}
+                                                    {executionResult.successful ? "실행 성공" : "실행 실패"}
                                                 </Alert>
                                                 
                                                 {executionResult.output && (
@@ -637,60 +637,119 @@ function CodingPage() {
                                             </MDBox>
                                         ) : submissionResult ? (
                                             <MDBox>
-                                                <Alert 
-                                                    severity={submissionResult.success ? "success" : "error"} 
-                                                    sx={{ mb: 2 }}
-                                                >
-                                                    {submissionResult.success ? "제출 성공" : "제출 실패"}
-                                                </Alert>
-                                                
-                                                {submissionResult.result && (
-                                                    <MDBox 
-                                                        sx={{ 
-                                                            p: 0,
-                                                            borderRadius: '4px',
-                                                            overflow: 'hidden',
-                                                            maxHeight: '200px',
-                                                            fontSize: '14px'
-                                                        }}
+                                                {/* 정답/오답 판정 */}
+                                                {submissionResult.output !== undefined && submissionResult.expectedOutput !== undefined && (
+                                                    <Alert 
+                                                        severity={submissionResult.output === submissionResult.expectedOutput ? "success" : "error"} 
+                                                        sx={{ mb: 2 }}
                                                     >
-                                                        <SyntaxHighlighter
-                                                            style={vscDarkPlus}
-                                                            language="json"
-                                                            customStyle={{
-                                                                margin: 0,
-                                                                maxHeight: '200px',
-                                                            }}
-                                                        >
-                                                            {typeof submissionResult.result === 'object' 
-                                                                ? JSON.stringify(submissionResult.result, null, 2) 
-                                                                : submissionResult.result}
-                                                        </SyntaxHighlighter>
+                                                        {submissionResult.output === submissionResult.expectedOutput ? "정답입니다!" : "오답입니다."}
+                                                    </Alert>
+                                                )}
+                                                
+                                                {/* 점수 표시 */}
+                                                {submissionResult.score !== undefined && (
+                                                    <MDBox sx={{ mb: 2 }}>
+                                                        <MDTypography variant="h6" fontWeight="medium">
+                                                            점수: {submissionResult.score}/100
+                                                        </MDTypography>
                                                     </MDBox>
                                                 )}
                                                 
-                                                {submissionResult.error && (
-                                                    <MDBox 
-                                                        sx={{ 
-                                                            p: 0,
-                                                            borderRadius: '4px',
-                                                            overflow: 'hidden',
-                                                            maxHeight: '200px',
-                                                            fontSize: '14px',
-                                                            mt: 2
-                                                        }}
-                                                    >
-                                                        <SyntaxHighlighter
-                                                            style={vscDarkPlus}
-                                                            language="plaintext"
-                                                            customStyle={{
-                                                                margin: 0,
+                                                {/* 실행 시간 표시 */}
+                                                {submissionResult.executionTime && (
+                                                    <MDBox sx={{ mb: 2 }}>
+                                                        <MDTypography variant="body2" color="text">
+                                                            실행 시간: {submissionResult.executionTime}ms
+                                                        </MDTypography>
+                                                    </MDBox>
+                                                )}
+                                                
+                                                {/* 사용자 출력 */}
+                                                {submissionResult.output && (
+                                                    <MDBox sx={{ mb: 2 }}>
+                                                        <MDTypography variant="body2" fontWeight="medium" sx={{ mb: 1 }}>
+                                                            당신의 출력:
+                                                        </MDTypography>
+                                                        <MDBox 
+                                                            sx={{ 
+                                                                p: 0,
+                                                                borderRadius: '4px',
+                                                                overflow: 'hidden',
                                                                 maxHeight: '200px',
-                                                                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                                                                fontSize: '14px'
                                                             }}
                                                         >
-                                                            {submissionResult.error}
-                                                        </SyntaxHighlighter>
+                                                            <SyntaxHighlighter
+                                                                style={vscDarkPlus}
+                                                                language="plaintext"
+                                                                customStyle={{
+                                                                    margin: 0,
+                                                                    maxHeight: '200px',
+                                                                }}
+                                                            >
+                                                                {submissionResult.output}
+                                                            </SyntaxHighlighter>
+                                                        </MDBox>
+                                                    </MDBox>
+                                                )}
+                                                
+                                                {/* 기대 출력 */}
+                                                {submissionResult.expectedOutput && (
+                                                    <MDBox sx={{ mb: 2 }}>
+                                                        <MDTypography variant="body2" fontWeight="medium" sx={{ mb: 1 }}>
+                                                            기대 출력:
+                                                        </MDTypography>
+                                                        <MDBox 
+                                                            sx={{ 
+                                                                p: 0,
+                                                                borderRadius: '4px',
+                                                                overflow: 'hidden',
+                                                                maxHeight: '200px',
+                                                                fontSize: '14px'
+                                                            }}
+                                                        >
+                                                            <SyntaxHighlighter
+                                                                style={vscDarkPlus}
+                                                                language="plaintext"
+                                                                customStyle={{
+                                                                    margin: 0,
+                                                                    maxHeight: '200px',
+                                                                }}
+                                                            >
+                                                                {submissionResult.expectedOutput}
+                                                            </SyntaxHighlighter>
+                                                        </MDBox>
+                                                    </MDBox>
+                                                )}
+                                                
+                                                {/* 에러 메시지 */}
+                                                {submissionResult.error && (
+                                                    <MDBox sx={{ mb: 2 }}>
+                                                        <MDTypography variant="body2" fontWeight="medium" sx={{ mb: 1 }}>
+                                                            오류:
+                                                        </MDTypography>
+                                                        <MDBox 
+                                                            sx={{ 
+                                                                p: 0,
+                                                                borderRadius: '4px',
+                                                                overflow: 'hidden',
+                                                                maxHeight: '200px',
+                                                                fontSize: '14px'
+                                                            }}
+                                                        >
+                                                            <SyntaxHighlighter
+                                                                style={vscDarkPlus}
+                                                                language="plaintext"
+                                                                customStyle={{
+                                                                    margin: 0,
+                                                                    maxHeight: '200px',
+                                                                    backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                                                                }}
+                                                            >
+                                                                {submissionResult.error}
+                                                            </SyntaxHighlighter>
+                                                        </MDBox>
                                                     </MDBox>
                                                 )}
                                             </MDBox>
