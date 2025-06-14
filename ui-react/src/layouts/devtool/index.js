@@ -46,7 +46,7 @@ import { useEffect, useState, useRef } from 'react';
 function DevTool() {
     // State variables
     const [code, setCode] = useState('');
-    const [language, setLanguage] = useState('JAVA');
+    const [language, setLanguage] = useState('PYTHON');
     const [executionResult, setExecutionResult] = useState(null);
     const [executing, setExecuting] = useState(false);
     

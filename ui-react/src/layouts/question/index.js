@@ -50,7 +50,7 @@ function Question() {
         content: '',
         answer: '',
         initialCode: '',
-        language: 'JAVA',
+        language: 'PYTHON',
         lv: 5,
         isCompare: false,
         compareCode: ''
