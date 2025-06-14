@@ -20,6 +20,7 @@ public interface LectureEntityRepository extends JpaRepository<LectureEntity, UU
     List<LectureEntity> findLecturesByCourseId(@Param("courseId") UUID courseId, @Param("doAt") LocalDateTime doAt, @Param("theEnd") LocalDateTime theEnd);
     @Query("SELECT l FROM LectureEntity l, RelationsEntity r " +
            "WHERE r.fromId = :courseId " +
+            "AND r.toId = l.id " +
             "order by l.doAt, l.createdAt")
 //           "AND r.fromType = com.anita.multipleauthapi.model.enums.EntityType.COURSE " +
 //           "AND r.toType = com.anita.multipleauthapi.model.enums.EntityType.LECTURE")
