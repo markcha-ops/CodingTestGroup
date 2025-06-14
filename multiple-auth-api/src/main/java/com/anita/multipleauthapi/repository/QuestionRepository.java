@@ -17,13 +17,14 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
     
     List<QuestionEntity> findByCreatedBy(UUID userId);
 
-    @Query("SELECT DISTINCT NEW com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse(q, s.score) " +
+    @Query("SELECT DISTINCT NEW com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse(q, MAX(s.score)) " +
             "FROM QuestionEntity q " +
             "LEFT JOIN SubmissionEntity s ON q.id = s.question.id " +
             "LEFT JOIN UserEntity u ON s.user.id = u.id, " +
             "RelationsEntity r " +
             "WHERE q.id = r.fromId " +
             "AND r.toId = :courseId " +
+            "GROUP BY q.id" +
             "")
     List<QuestionWithScoreResponse> findQuestionsWithScoreByCourseId(@Param("courseId") UUID courseId);
 

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -96,7 +97,9 @@ public class QuestionService {
                             }
                             question.setPass(score == 100 ? true : false);
                             return question;
-                        }).toList();
+                        })
+                        .sorted(Comparator.comparing(t->t.getCreatedAt()))
+                        .toList();
             }
 
             return questions.stream()
