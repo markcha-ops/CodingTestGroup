@@ -25,7 +25,6 @@ public class SubmissionEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id")
-    @Column(name = "question_id")
     private QuestionEntity question;
     
     @Column(name = "code", columnDefinition = "TEXT")
