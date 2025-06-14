@@ -147,89 +147,83 @@ public class SubmissionService {
         // Get the question
         QuestionEntity question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new EntityNotFoundException("Question not found with ID: " + questionId));
-        Optional<UserEntity> optionalUserEntity = userRepository.findById(userPrincipal.getId());
-        if (!optionalUserEntity.isPresent()) {
             // Create a new submission entity\
-            UserEntity userEntity = optionalUserEntity.get();
-            SubmissionEntity submission = SubmissionEntity.builder()
-                    .user(userEntity)
-                    .question(question)
-                    .code(submissionRequest.getCode())
-                    .language(submissionRequest.getLanguage())
-                    .status("PENDING")
-                    .build();
+        SubmissionEntity submission = SubmissionEntity.builder()
+                .userId(userPrincipal.getId())
+                .questionId(question.getId())
+                .code(submissionRequest.getCode())
+                .language(submissionRequest.getLanguage())
+                .status("PENDING")
+                .build();
 
 
-            try {
-                // Execute the code
-                DockerService.ExecutionResult executionResult;
+        try {
+            // Execute the code
+            DockerService.ExecutionResult executionResult;
 
-                // Check if the language matches the expected language
-                if (question.getLanguage() != submissionRequest.getLanguage()) {
-                    throw new IllegalArgumentException("The submitted code language does not match the question language");
-                }
+            // Check if the language matches the expected language
+            if (question.getLanguage() != submissionRequest.getLanguage()) {
+                throw new IllegalArgumentException("The submitted code language does not match the question language");
+            }
 
-                // Execute code using Docker
-                executionResult = dockerService.executeCode(
-                        submissionRequest.getLanguage(),
-                        submissionRequest.getCode(),
-                        question.getInitialCode(), // Initial code (SQL schema, etc)
+            // Execute code using Docker
+            executionResult = dockerService.executeCode(
+                    submissionRequest.getLanguage(),
+                    submissionRequest.getCode(),
+                    question.getInitialCode(), // Initial code (SQL schema, etc)
+                    DEFAULT_TIMEOUT_SECONDS
+            );
+
+            // Process execution result
+            String userOutput = executionResult.getStdout().trim();
+            String expectedOutput = "";
+            boolean hasPassed = false;
+
+            // If question uses comparison code, execute the comparison code
+            if (Boolean.TRUE.equals(question.getIsCompare()) && question.getCompareCode() != null) {
+                // Execute the comparison code to get expected output
+                DockerService.ExecutionResult comparisonResult = dockerService.executeCode(
+                        question.getLanguage(),
+                        question.getCompareCode(),
+                        question.getInitialCode(),
                         DEFAULT_TIMEOUT_SECONDS
                 );
-
-                // Process execution result
-                String userOutput = executionResult.getStdout().trim();
-                String expectedOutput = "";
-                boolean hasPassed = false;
-
-                // If question uses comparison code, execute the comparison code
-                if (Boolean.TRUE.equals(question.getIsCompare()) && question.getCompareCode() != null) {
-                    // Execute the comparison code to get expected output
-                    DockerService.ExecutionResult comparisonResult = dockerService.executeCode(
-                            question.getLanguage(),
-                            question.getCompareCode(),
-                            question.getInitialCode(),
-                            DEFAULT_TIMEOUT_SECONDS
-                    );
-                    expectedOutput = comparisonResult.getStdout().trim();
-                    hasPassed = userOutput.equals(expectedOutput);
-                } else {
-                    // Use direct answer comparison
-                    expectedOutput = question.getAnswer().trim();
-                    hasPassed = userOutput.equals(expectedOutput);
-                }
-
-                // Calculate score (100 if pass, 0 if fail)
-                int score = hasPassed ? 100 : 0;
-
-                // Update submission with results
-                submission.setScore(score);
-                submission.setOutput(userOutput);
-                submission.setError(executionResult.getStderr());
-                submission.setExpectedOutput(expectedOutput);
-                submission.setExecutionTime(executionResult.getExecutionTime());
-                submission.setStatus("COMPLETED");
-
-                submissionRepository.save(submission);
-
-                // Create and return response
-                return mapToResponse(submission);
-
-            } catch (Exception e) {
-                log.error("Error processing submission: {}", e.getMessage(), e);
-
-                // Update submission with error
-                submission.setStatus("FAILED");
-                submission.setError(e.getMessage());
-                submission.setScore(0);
-
-                submissionRepository.save(submission);
-
-                // Create and return error response
-                return mapToResponse(submission);
+                expectedOutput = comparisonResult.getStdout().trim();
+                hasPassed = userOutput.equals(expectedOutput);
+            } else {
+                // Use direct answer comparison
+                expectedOutput = question.getAnswer().trim();
+                hasPassed = userOutput.equals(expectedOutput);
             }
-        } else {
-            return null;
+
+            // Calculate score (100 if pass, 0 if fail)
+            int score = hasPassed ? 100 : 0;
+
+            // Update submission with results
+            submission.setScore(score);
+            submission.setOutput(userOutput);
+            submission.setError(executionResult.getStderr());
+            submission.setExpectedOutput(expectedOutput);
+            submission.setExecutionTime(executionResult.getExecutionTime());
+            submission.setStatus("COMPLETED");
+
+            submissionRepository.save(submission);
+
+            // Create and return response
+            return mapToResponse(submission);
+
+        } catch (Exception e) {
+            log.error("Error processing submission: {}", e.getMessage(), e);
+
+            // Update submission with error
+            submission.setStatus("FAILED");
+            submission.setError(e.getMessage());
+            submission.setScore(0);
+
+            submissionRepository.save(submission);
+
+            // Create and return error response
+            return mapToResponse(submission);
         }
 
     }
