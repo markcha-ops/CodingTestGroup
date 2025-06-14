@@ -15,7 +15,11 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
     List<QuestionEntity> findByLanguage(LanguageType language);
     
     List<QuestionEntity> findByCreatedBy(UUID userId);
-    
+
+    @Query("SELECT q FROM QuestionEntity q, RelationsEntity r WHERE " +
+            "q.id = r.fromId AND r.fromId = :courseId")
+    List<QuestionEntity> findByCourseIds(@Param("courseId") UUID courseId);
+
     @Query("SELECT q FROM QuestionEntity q, RelationsEntity r " +
            "WHERE r.fromId = :courseId " +
            "AND r.toId = q.id " +
@@ -36,7 +40,8 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
            "q.content LIKE CONCAT('%', :keyword, '%')")
     List<QuestionEntity> findByKeyword(@Param("keyword") String keyword);
     
-    @Query("SELECT q FROM QuestionEntity q WHERE " +
+    @Query("SELECT q FROM QuestionEntity q, RelationsEntity r WHERE " +
+            "q.id = r.fromId AND " +
            "q.language = :language AND " +
            "(q.title LIKE CONCAT('%', :keyword, '%') OR " +
            "q.content LIKE CONCAT('%', :keyword, '%'))")

@@ -25,9 +25,10 @@ public class QuestionController {
      */
     @GetMapping("/questions")
     public ResponseEntity<List<QuestionResponse>> searchQuestions(
+            @CurrentUser UserPrincipal userPrincipal,
             @RequestParam(required = false) LanguageType language,
             @RequestParam(required = false) String keyword) {
-        List<QuestionResponse> questions = questionService.searchQuestions(language, keyword);
+        List<QuestionResponse> questions = questionService.searchQuestions(userPrincipal, language, keyword);
         return ResponseEntity.ok(questions);
     }
     

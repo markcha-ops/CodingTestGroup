@@ -59,33 +59,42 @@ public class QuestionService {
     
     /**
      * Search questions with filters
-     * @param language Optional language filter
-     * @param keyword Optional keyword to search in title and content
+     *
+     * @param userPrincipal
+     * @param language      Optional language filter
+     * @param keyword       Optional keyword to search in title and content
      * @return List of questions matching the filters
      */
-    public List<QuestionResponse> searchQuestions(LanguageType language, String keyword) {
+    public List<QuestionResponse> searchQuestions(UserPrincipal userPrincipal, LanguageType language, String keyword) {
         List<QuestionEntity> questions;
-        
-        boolean hasLanguage = language != null;
-        boolean hasKeyword = StringUtils.hasText(keyword);
-        
-        if (hasLanguage && hasKeyword) {
-            // Both language and keyword filters are provided
-            questions = questionRepository.findByLanguageAndKeyword(language, keyword);
-        } else if (hasLanguage) {
-            // Only language filter is provided
-            questions = questionRepository.findByLanguage(language);
-        } else if (hasKeyword) {
-            // Only keyword filter is provided
-            questions = questionRepository.findByKeyword(keyword);
+        Optional<UserEntity> optionalUserEntity = userRepository.findById(userPrincipal.getId());
+        CourseEntity courseEntity = courseEntityRepository.getById(userPrincipal.getCourseId());
+        if (optionalUserEntity.isPresent()) {
+            boolean hasLanguage = language != null;
+            boolean hasKeyword = StringUtils.hasText(keyword);
+            UserEntity userEntity = optionalUserEntity.get();
+
+            if (hasLanguage && hasKeyword) {
+                // Both language and keyword filters are provided
+                questions = questionRepository.findByLanguageAndKeyword(language, keyword);
+            } else if (hasLanguage) {
+                // Only language filter is provided
+                questions = questionRepository.findByLanguage(language);
+            } else if (hasKeyword) {
+                // Only keyword filter is provided
+                questions = questionRepository.findByKeyword(keyword);
+            } else {
+                // No filters, return all questions
+                questions = questionRepository.findByCourseIds(courseEntity.getId());
+            }
+
+            return questions.stream()
+                    .map(this::mapToQuestionResponse)
+                    .collect(Collectors.toList());
         } else {
-            // No filters, return all questions
-            questions = questionRepository.findAll();
+            throw new RuntimeException("User not found");
         }
-        
-        return questions.stream()
-                .map(this::mapToQuestionResponse)
-                .collect(Collectors.toList());
+
     }
     
     /**
