@@ -17,8 +17,8 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
     
     List<QuestionEntity> findByCreatedBy(UUID userId);
 
-    @Query("SELECT NEW com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse(q, s.score) " +
-           "FROM QuestionEntity q, RelationsEntity r, SubmissionEntity s WHERE " +
+    @Query("SELECT  q " +
+           "FROM QuestionEntity q, RelationsEntity r WHERE " +
            "q.id = r.fromId AND r.toId = :courseId")
     List<QuestionWithScoreResponse> findQuestionsWithScoreByCourseId(@Param("courseId") UUID courseId);
 
