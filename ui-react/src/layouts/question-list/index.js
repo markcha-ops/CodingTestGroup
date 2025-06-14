@@ -33,6 +33,8 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import LinearProgress from "@mui/material/LinearProgress";
+import Box from "@mui/material/Box";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -60,6 +62,11 @@ function QuestionList() {
     const [language, setLanguage] = useState('');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedQuestionId, setSelectedQuestionId] = useState(null);
+    const [bulkCreateDialogOpen, setBulkCreateDialogOpen] = useState(false);
+    const [bulkCreateData, setBulkCreateData] = useState('');
+    const [bulkCreating, setBulkCreating] = useState(false);
+    const [bulkCreateProgress, setBulkCreateProgress] = useState(0);
+    const [bulkCreateResult, setBulkCreateResult] = useState(null);
     
     // Available programming languages
     const programmingLanguages = [
@@ -178,6 +185,98 @@ function QuestionList() {
             month: '2-digit',
             day: '2-digit',
         });
+    };
+
+    // Open bulk create dialog
+    const handleBulkCreateOpen = () => {
+        setBulkCreateDialogOpen(true);
+        setBulkCreateData('');
+        setBulkCreateResult(null);
+        setBulkCreateProgress(0);
+    };
+
+    // Close bulk create dialog
+    const handleBulkCreateClose = () => {
+        if (!bulkCreating) {
+            setBulkCreateDialogOpen(false);
+            setBulkCreateData('');
+            setBulkCreateResult(null);
+            setBulkCreateProgress(0);
+        }
+    };
+
+    // Handle bulk create
+    const handleBulkCreate = async () => {
+        if (!bulkCreateData.trim()) {
+            setError('JSON 데이터를 입력해주세요.');
+            return;
+        }
+
+        setBulkCreating(true);
+        setBulkCreateProgress(0);
+        setBulkCreateResult(null);
+
+        try {
+            // Parse JSON data
+            const questionsData = JSON.parse(bulkCreateData);
+            
+            if (!Array.isArray(questionsData)) {
+                throw new Error('JSON 데이터는 배열 형태여야 합니다.');
+            }
+
+            const total = questionsData.length;
+            let successCount = 0;
+            let failureCount = 0;
+            const errors = [];
+
+            // Process each question
+            for (let i = 0; i < questionsData.length; i++) {
+                const questionData = questionsData[i];
+                
+                try {
+                    // Prepare data for API (exclude server-generated fields)
+                    const apiData = {
+                        courseId: '00000000-0000-0000-0000-000000000000', // Default courseId
+                        title: questionData.title || '',
+                        content: questionData.content || '',
+                        language: questionData.language || 'PYTHON',
+                        lv: questionData.lv || 1,
+                        answer: questionData.answer || '',
+                        initialCode: questionData.initialCode || '',
+                        isCompare: questionData.isCompare || false,
+                        compareCode: questionData.compareCode || ''
+                    };
+
+                    await api.post('/api/questions', apiData);
+                    successCount++;
+                } catch (err) {
+                    failureCount++;
+                    errors.push(`문제 ${i + 1}: ${err.response?.data?.message || err.message}`);
+                }
+
+                // Update progress
+                setBulkCreateProgress(((i + 1) / total) * 100);
+            }
+
+            // Set result
+            setBulkCreateResult({
+                total,
+                successCount,
+                failureCount,
+                errors
+            });
+
+            // Refresh question list if any questions were created successfully
+            if (successCount > 0) {
+                fetchQuestions();
+            }
+
+        } catch (err) {
+            console.error('Bulk create error:', err);
+            setError('JSON 파싱 오류: ' + err.message);
+        } finally {
+            setBulkCreating(false);
+        }
     };
 
     return (
@@ -332,8 +431,15 @@ function QuestionList() {
                                     </TableContainer>
                                 )}
                                 
-                                {/* Create new question button */}
-                                <MDBox mt={3} display="flex" justifyContent="flex-end">
+                                {/* Create new question buttons */}
+                                <MDBox mt={3} display="flex" justifyContent="flex-end" gap={2}>
+                                    <MDButton 
+                                        variant="outlined" 
+                                        color="info" 
+                                        onClick={handleBulkCreateOpen}
+                                    >
+                                        문제 일괄 생성
+                                    </MDButton>
                                     <MDButton 
                                         variant="contained" 
                                         color="info" 
@@ -371,6 +477,96 @@ function QuestionList() {
                     <Button onClick={handleDeleteQuestion} color="error" autoFocus>
                         삭제
                     </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Bulk Create Dialog */}
+            <Dialog
+                open={bulkCreateDialogOpen}
+                onClose={handleBulkCreateClose}
+                maxWidth="md"
+                fullWidth
+                aria-labelledby="bulk-create-dialog-title"
+            >
+                <DialogTitle id="bulk-create-dialog-title">
+                    문제 일괄 생성
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText sx={{ mb: 2 }}>
+                        JSON 형식으로 여러 문제를 한 번에 생성할 수 있습니다. 다음 형식의 배열을 입력하세요:
+                    </DialogContentText>
+                    <Box sx={{ mb: 2, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+                        <Typography variant="body2" component="pre" sx={{ fontSize: '0.75rem', overflow: 'auto' }}>
+{`[
+  {
+    "title": "문제 제목",
+    "content": "문제 내용",
+    "language": "PYTHON",
+    "lv": 5,
+    "answer": "정답",
+    "initialCode": "초기 코드",
+    "isCompare": false,
+    "compareCode": ""
+  }
+]`}
+                        </Typography>
+                    </Box>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="JSON 데이터"
+                        multiline
+                        rows={10}
+                        fullWidth
+                        variant="outlined"
+                        value={bulkCreateData}
+                        onChange={(e) => setBulkCreateData(e.target.value)}
+                        placeholder="문제 데이터를 JSON 배열 형식으로 입력하세요..."
+                        disabled={bulkCreating}
+                    />
+                    
+                    {bulkCreating && (
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2" gutterBottom>
+                                문제 생성 중... ({Math.round(bulkCreateProgress)}%)
+                            </Typography>
+                            <LinearProgress variant="determinate" value={bulkCreateProgress} />
+                        </Box>
+                    )}
+                    
+                    {bulkCreateResult && (
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2" gutterBottom>
+                                생성 완료: 전체 {bulkCreateResult.total}개 중 성공 {bulkCreateResult.successCount}개, 실패 {bulkCreateResult.failureCount}개
+                            </Typography>
+                            {bulkCreateResult.errors.length > 0 && (
+                                <Box sx={{ maxHeight: 200, overflow: 'auto', mt: 1 }}>
+                                    <Typography variant="body2" color="error" gutterBottom>
+                                        오류 목록:
+                                    </Typography>
+                                    {bulkCreateResult.errors.map((error, index) => (
+                                        <Typography key={index} variant="body2" color="error" sx={{ fontSize: '0.75rem' }}>
+                                            • {error}
+                                        </Typography>
+                                    ))}
+                                </Box>
+                            )}
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleBulkCreateClose} disabled={bulkCreating}>
+                        {bulkCreateResult ? '닫기' : '취소'}
+                    </Button>
+                    {!bulkCreateResult && (
+                        <Button 
+                            onClick={handleBulkCreate} 
+                            variant="contained" 
+                            disabled={bulkCreating || !bulkCreateData.trim()}
+                        >
+                            {bulkCreating ? '생성 중...' : '일괄 생성'}
+                        </Button>
+                    )}
                 </DialogActions>
             </Dialog>
             
