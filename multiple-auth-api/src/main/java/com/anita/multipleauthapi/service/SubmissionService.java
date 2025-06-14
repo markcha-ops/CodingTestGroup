@@ -8,6 +8,7 @@ import com.anita.multipleauthapi.model.entity.SubmissionEntity;
 import com.anita.multipleauthapi.model.entity.UserEntity;
 import com.anita.multipleauthapi.model.payload.DebugResponse;
 import com.anita.multipleauthapi.model.payload.SubmissionResponse;
+import com.anita.multipleauthapi.model.payload.UserResponse;
 import com.anita.multipleauthapi.repository.QuestionRepository;
 import com.anita.multipleauthapi.repository.SubmissionRepository;
 import com.anita.multipleauthapi.repository.UserRepository;
@@ -34,6 +35,7 @@ public class SubmissionService {
     private static final int DEFAULT_TIMEOUT_SECONDS = 10;
     private static final int DEBUG_TIMEOUT_SECONDS = 15;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     /**
      * Debug code without saving to database
@@ -149,8 +151,9 @@ public class SubmissionService {
         QuestionEntity question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new EntityNotFoundException("Question not found with ID: " + questionId));
             // Create a new submission entity\
+        UserEntity userInfoById = userRepository.getById(userPrincipal.getId());
         SubmissionEntity submission = SubmissionEntity.builder()
-                .userId(userPrincipal.getId())
+                .user(userInfoById)
                 .question(question)
                 .code(submissionRequest.getCode())
                 .language(submissionRequest.getLanguage())
@@ -288,7 +291,7 @@ public class SubmissionService {
     private SubmissionResponse mapToResponse(SubmissionEntity submission) {
         return SubmissionResponse.builder()
                 .id(submission.getId())
-                .userId(submission.getUserId())
+//                .userId(submission.getUserId())
 //                .questionId(submission.getQuestion().getId())
                 .code(submission.getCode())
                 .language(submission.getLanguage())

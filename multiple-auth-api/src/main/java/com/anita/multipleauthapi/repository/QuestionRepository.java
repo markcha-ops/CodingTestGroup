@@ -19,11 +19,14 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
 
     @Query("SELECT NEW com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse(q, s.score) " +
             "FROM QuestionEntity q " +
-            "LEFT JOIN SubmissionEntity s ON q.id = s.question.id, " +
+            "LEFT JOIN SubmissionEntity s ON q.id = s.question.id " +
+            "LEFT JOIN UserEntity u ON s.user.id = u.id, " +
             "RelationsEntity r " +
             "WHERE q.id = r.fromId " +
-            "AND r.toId = :courseId")
-    List<QuestionWithScoreResponse> findQuestionsWithScoreByCourseId(@Param("courseId") UUID courseId);
+            "AND r.toId = :courseId " +
+            "AND u.id = :userId" +
+            "")
+    List<QuestionWithScoreResponse> findQuestionsWithScoreByCourseId(@Param("courseId") UUID courseId, @Param("userId") UUID userId);
 
     @Query("SELECT q FROM QuestionEntity q, RelationsEntity r " +
            "WHERE r.fromId = :courseId " +

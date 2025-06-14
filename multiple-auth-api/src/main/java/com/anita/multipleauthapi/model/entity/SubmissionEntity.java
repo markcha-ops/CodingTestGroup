@@ -19,9 +19,10 @@ public class SubmissionEntity {
     @Id
     @Column(name = "submission_id")
     private UUID id;
-    
-    @Column(name = "user_id")
-    private UUID userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id")
