@@ -19,10 +19,6 @@ import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
-import Switch from "@mui/material/Switch";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
 
 // Icons
 import SearchIcon from "@mui/icons-material/Search";
@@ -53,7 +49,6 @@ function LectureList() {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
     const navigate = useNavigate();
 
     // 초기 강의 목록 가져오기
@@ -155,52 +150,6 @@ function LectureList() {
         return tags.length > 0 ? tags : null;
     };
 
-    // 강의 활성화/비활성화
-    const handleActivateToggle = async (lectureId, currentStatus) => {
-        try {
-            const endpoint = currentStatus ? 
-                `/api/lecture/${lectureId}/deactivate` : 
-                `/api/lecture/${lectureId}/activate`;
-            
-            await api.put(endpoint);
-            
-            // 강의 목록 상태 업데이트
-            const updatedLectures = lectures.map(lecture => 
-                lecture.id === lectureId 
-                    ? { ...lecture, activate: !currentStatus }
-                    : lecture
-            );
-            
-            setLectures(updatedLectures);
-            setFilteredLectures(updatedLectures.filter(lecture => 
-                searchTerm.trim() === '' || 
-                lecture.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                (lecture.description && lecture.description.toLowerCase().includes(searchTerm.toLowerCase()))
-            ));
-            
-            setSnackbar({
-                open: true,
-                message: currentStatus ? '강의가 비활성화되었습니다.' : '강의가 활성화되었습니다.',
-                severity: 'success'
-            });
-        } catch (err) {
-            console.error('Failed to toggle lecture status:', err);
-            setSnackbar({
-                open: true,
-                message: '강의 상태 변경에 실패했습니다.',
-                severity: 'error'
-            });
-        }
-    };
-
-    // 스낵바 닫기
-    const handleSnackbarClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setSnackbar({ ...snackbar, open: false });
-    };
-
     return (
         <DashboardLayout>
             <DashboardNavbar />
@@ -254,29 +203,26 @@ function LectureList() {
                                         {filteredLectures.map((lecture, index) => (
                                             <div key={lecture.id}>
                                                 <ListItem 
+                                                    button 
+                                                    onClick={() => handleLectureClick(lecture.id)}
                                                     sx={{ 
                                                         borderRadius: 1, 
                                                         '&:hover': { bgcolor: '#f5f5f5' },
                                                         py: 2
                                                     }}
                                                 >
-                                                    <Grid container spacing={2} alignItems="center">
-                                                        <Grid item xs={12} md={6}>
-                                                            <Box 
-                                                                onClick={() => handleLectureClick(lecture.id)}
-                                                                sx={{ cursor: 'pointer' }}
-                                                            >
-                                                                <MDTypography variant="h6" fontWeight="medium">
-                                                                    {lecture.name}
+                                                    <Grid container spacing={2}>
+                                                        <Grid item xs={12} md={7}>
+                                                            <MDTypography variant="h6" fontWeight="medium">
+                                                                {lecture.name}
+                                                            </MDTypography>
+                                                            {lecture.description && (
+                                                                <MDTypography variant="body2" color="text">
+                                                                    {lecture.description}
                                                                 </MDTypography>
-                                                                {lecture.description && (
-                                                                    <MDTypography variant="body2" color="text">
-                                                                        {lecture.description}
-                                                                    </MDTypography>
-                                                                )}
-                                                                <Box mt={1}>
-                                                                    {getLectureResourceTags(lecture)}
-                                                                </Box>
+                                                            )}
+                                                            <Box mt={1}>
+                                                                {getLectureResourceTags(lecture)}
                                                             </Box>
                                                         </Grid>
                                                         <Grid item xs={12} md={3}>
@@ -287,44 +233,14 @@ function LectureList() {
                                                                 종료: {formatTimeFromISO(lecture.theEnd)}
                                                             </MDTypography>
                                                         </Grid>
-                                                        <Grid item xs={12} md={2}>
-                                                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                                <FormControlLabel
-                                                                    control={
-                                                                        <Switch
-                                                                            checked={lecture.activate || false}
-                                                                            onChange={(e) => {
-                                                                                e.stopPropagation();
-                                                                                handleActivateToggle(lecture.id, lecture.activate);
-                                                                            }}
-                                                                            color="primary"
-                                                                            size="small"
-                                                                        />
-                                                                    }
-                                                                    label={
-                                                                        <MDTypography variant="caption" color="text">
-                                                                            {lecture.activate ? '활성' : '비활성'}
-                                                                        </MDTypography>
-                                                                    }
-                                                                    labelPlacement="top"
-                                                                    sx={{ 
-                                                                        m: 0,
-                                                                        '& .MuiFormControlLabel-label': {
-                                                                            fontSize: '0.75rem'
-                                                                        }
-                                                                    }}
-                                                                />
-                                                                <IconButton 
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleLectureClick(lecture.id);
-                                                                    }}
-                                                                    color="primary"
-                                                                    size="small"
-                                                                >
-                                                                    <ArrowForwardIcon />
-                                                                </IconButton>
-                                                            </Box>
+                                                        <Grid item xs={12} md={2} display="flex" justifyContent="flex-end" alignItems="center">
+                                                            <IconButton 
+                                                                onClick={() => handleLectureClick(lecture.id)}
+                                                                color="primary"
+                                                                sx={{ ml: 'auto' }}
+                                                            >
+                                                                <ArrowForwardIcon />
+                                                            </IconButton>
                                                         </Grid>
                                                     </Grid>
                                                 </ListItem>
@@ -338,23 +254,6 @@ function LectureList() {
                     </Grid>
                 </Grid>
             </MDBox>
-            
-            {/* 스낵바 - 상태 변경 알림 */}
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={3000}
-                onClose={handleSnackbarClose}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert 
-                    onClose={handleSnackbarClose} 
-                    severity={snackbar.severity}
-                    variant="filled"
-                >
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
-            
             <Footer />
         </DashboardLayout>
     );
