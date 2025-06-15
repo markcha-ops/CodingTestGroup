@@ -230,7 +230,7 @@ proxy:
     labels: {}
     annotations: {}
     nodePorts:
-      http: 30809  # NodePort는 30000-32767 범위 내에서 설정
+      http: 30099  # NodePort는 30000-32767 범위 내에서 설정
       https:
     disableHttpPort: false
     extraPorts:
@@ -238,7 +238,7 @@ proxy:
         port: 8099  # LoadBalancer에서 8099 포트로 접근 가능
         targetPort: 8000  # 내부 컨테이너 포트
         protocol: TCP
-        nodePort: 30809  # NodePort 설정
+        nodePort: 30099  # NodePort 설정
     externalIPs: []
     loadBalancerIP:
     loadBalancerSourceRanges: []
