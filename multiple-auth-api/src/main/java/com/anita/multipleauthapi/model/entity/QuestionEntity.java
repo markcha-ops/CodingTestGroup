@@ -73,7 +73,7 @@ public class QuestionEntity {
     @Transient
     private Boolean pass;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "question")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "question")
     private List<SubmissionEntity> submissions;
 
     @PrePersist
