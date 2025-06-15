@@ -69,10 +69,6 @@ function QuestionList() {
     const [bulkCreating, setBulkCreating] = useState(false);
     const [bulkCreateProgress, setBulkCreateProgress] = useState(0);
     const [bulkCreateResult, setBulkCreateResult] = useState(null);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedTag, setSelectedTag] = useState("");
-    const [selectedDifficulty, setSelectedDifficulty] = useState("");
-    const [questionToDelete, setQuestionToDelete] = useState(null);
     const [activatingQuestionId, setActivatingQuestionId] = useState(null);
     
     // Available programming languages
@@ -291,21 +287,13 @@ function QuestionList() {
         setActivatingQuestionId(questionId);
         try {
             const endpoint = isActive ? 'deactivate' : 'activate';
-            const response = await fetch(`/api/questions/${questionId}/${endpoint}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+            await api.put(`/api/questions/${questionId}/${endpoint}`);
             
-            if (response.ok) {
-                // Refresh the questions list
-                await fetchQuestions();
-            } else {
-                console.error(`Failed to ${endpoint} question`);
-            }
+            // Refresh the questions list
+            await fetchQuestions();
         } catch (error) {
             console.error(`Error ${isActive ? 'deactivating' : 'activating'} question:`, error);
+            setError(`문제 ${isActive ? '비활성화' : '활성화'}에 실패했습니다.`);
         } finally {
             setActivatingQuestionId(null);
         }
@@ -392,7 +380,6 @@ function QuestionList() {
                                             <TableHead>
                                                 <TableRow>
                                                     <TableCell>제목</TableCell>
-                                                    <TableCell>태그</TableCell>
                                                     <TableCell>난이도</TableCell>
                                                     <TableCell>언어</TableCell>
                                                     <TableCell>상태</TableCell>
@@ -413,15 +400,17 @@ function QuestionList() {
                                                             <TableCell component="th" scope="row">
                                                                 {question.title}
                                                             </TableCell>
-                                                            <TableCell>{question.tags.map(tag => tag.name).join(', ')}</TableCell>
                                                             <TableCell>Lv. {question.lv}</TableCell>
                                                             <TableCell>{programmingLanguages.find(lang => lang.value === question.language)?.label || question.language}</TableCell>
-                                                            <TableCell>{question.isActive ? "활성" : "비활성"}</TableCell>
+                                                            <TableCell>{question.isActive !== undefined ? (question.isActive ? "활성" : "비활성") : "알 수 없음"}</TableCell>
                                                             <TableCell>{formatDate(question.createdAt)}</TableCell>
                                                             <TableCell align="right">
                                                                 <Tooltip title="문제 풀기">
                                                                     <IconButton
-                                                                        onClick={() => handleSolveQuestion(question.id)}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleSolveQuestion(question.id);
+                                                                        }}
                                                                         color="primary"
                                                                         size="small"
                                                                     >
@@ -429,12 +418,15 @@ function QuestionList() {
                                                                     </IconButton>
                                                                 </Tooltip>
                                                                 
-                                                                <Tooltip title={question.isActive ? "비활성화" : "활성화"}>
+                                                                <Tooltip title={question.isActive !== undefined ? (question.isActive ? "비활성화" : "활성화") : "상태 불명"}>
                                                                     <IconButton
-                                                                        onClick={() => handleActivateQuestion(question.id, question.isActive)}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleActivateQuestion(question.id, question.isActive);
+                                                                        }}
                                                                         color={question.isActive ? "error" : "success"}
                                                                         size="small"
-                                                                        disabled={activatingQuestionId === question.id}
+                                                                        disabled={activatingQuestionId === question.id || question.isActive === undefined}
                                                                     >
                                                                         {activatingQuestionId === question.id ? (
                                                                             <CircularProgress size={20} />
@@ -448,7 +440,10 @@ function QuestionList() {
                                                                 
                                                                 <Tooltip title="수정">
                                                                     <IconButton
-                                                                        onClick={() => handleEditQuestion(question.id)}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleEditQuestion(question.id);
+                                                                        }}
                                                                         color="primary"
                                                                         size="small"
                                                                     >
@@ -458,7 +453,10 @@ function QuestionList() {
                                                                 
                                                                 <Tooltip title="삭제">
                                                                     <IconButton
-                                                                        onClick={() => handleDeleteConfirmOpen(question.id)}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDeleteConfirmOpen(question.id);
+                                                                        }}
                                                                         color="error"
                                                                         size="small"
                                                                     >
@@ -470,7 +468,7 @@ function QuestionList() {
                                                     ))
                                                 ) : (
                                                     <TableRow>
-                                                        <TableCell colSpan={5} align="center">
+                                                        <TableCell colSpan={6} align="center">
                                                             문제가 없습니다. 새 문제를 추가하세요.
                                                         </TableCell>
                                                     </TableRow>

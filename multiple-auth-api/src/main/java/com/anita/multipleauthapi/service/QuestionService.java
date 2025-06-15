@@ -66,7 +66,7 @@ public class QuestionService {
      * @param keyword       Optional keyword to search in title and content
      * @return List of questions matching the filters
      */
-    public List<QuestionResponse> searchQuestions(UserPrincipal userPrincipal, LanguageType language, String keyword) {
+    public List<QuestionResponse> searchQuestions(UserPrincipal userPrincipal, LanguageType language, String keyword, List<Boolean> isActive) {
         List<QuestionEntity> questions;
         Optional<UserEntity> optionalUserEntity = userRepository.findById(userPrincipal.getId());
         CourseEntity courseEntity = courseEntityRepository.getById(userPrincipal.getCourseId());
@@ -86,7 +86,7 @@ public class QuestionService {
                 questions = questionRepository.findByKeyword(keyword);
             } else {
                 // No filters, return all questions
-                List<QuestionWithScoreResponse> questionsWithScoreByCourseId = questionRepository.findQuestionsWithScoreByCourseId(courseEntity.getId(), userEntity.getId());
+                List<QuestionWithScoreResponse> questionsWithScoreByCourseId = questionRepository.findQuestionsWithScoreByCourseId(courseEntity.getId(), userEntity.getId(), isActive);
 
                 questions = questionsWithScoreByCourseId.stream()
                         .map(t-> {

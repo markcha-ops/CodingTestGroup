@@ -24,8 +24,9 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
             "LEFT JOIN (SELECT s.question.id as questionId, MAX(s.score) as score " +
             "           FROM SubmissionEntity s WHERE s.user.id = :userId GROUP BY s.question.id) maxScore " +
             "           ON q.id = maxScore.questionId " +
-            "WHERE r.toId = :courseId")
-    List<QuestionWithScoreResponse> findQuestionsWithScoreByCourseId(@Param("courseId") UUID courseId, @Param("userId") UUID userId);
+            "WHERE r.toId = :courseId " +
+            "AND q.isActive IN (:isActive)")
+    List<QuestionWithScoreResponse> findQuestionsWithScoreByCourseId(@Param("courseId") UUID courseId, @Param("userId") UUID userId, @Param("isActive") List<Boolean> isActive);
 
     @Query("SELECT q FROM QuestionEntity q, RelationsEntity r " +
            "WHERE r.fromId = :courseId " +

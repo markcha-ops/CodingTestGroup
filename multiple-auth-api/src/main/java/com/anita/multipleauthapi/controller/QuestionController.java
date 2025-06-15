@@ -28,7 +28,15 @@ public class QuestionController {
             @CurrentUser UserPrincipal userPrincipal,
             @RequestParam(required = false) LanguageType language,
             @RequestParam(required = false) String keyword) {
-        List<QuestionResponse> questions = questionService.searchQuestions(userPrincipal, language, keyword);
+        List<QuestionResponse> questions = questionService.searchQuestions(userPrincipal, language, keyword, List.of(true, false));
+        return ResponseEntity.ok(questions);
+    }
+    @GetMapping("/questions/user")
+    public ResponseEntity<List<QuestionResponse>> searchQuestionsUser(
+            @CurrentUser UserPrincipal userPrincipal,
+            @RequestParam(required = false) LanguageType language,
+            @RequestParam(required = false) String keyword) {
+        List<QuestionResponse> questions = questionService.searchQuestions(userPrincipal, language, keyword, List.of(true));
         return ResponseEntity.ok(questions);
     }
     

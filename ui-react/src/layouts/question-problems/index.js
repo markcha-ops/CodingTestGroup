@@ -43,7 +43,7 @@ function QuestionProblems() {
     const fetchQuestions = async () => {
         setLoading(true);
         try {
-            const response = await api.get('/api/questions');
+            const response = await api.get('/api/questions/user');
             setQuestions(response.data);
             setError(null);
         } catch (err) {
