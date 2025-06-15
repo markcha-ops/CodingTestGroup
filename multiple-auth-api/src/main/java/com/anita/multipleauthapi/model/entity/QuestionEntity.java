@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -71,6 +72,9 @@ public class QuestionEntity {
     private String updatedAt;
     @Transient
     private Boolean pass;
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "question")
+    private List<SubmissionEntity> submissions;
 
     @PrePersist
     public void generateUUID() {
