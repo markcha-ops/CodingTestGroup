@@ -230,7 +230,7 @@ proxy:
     labels: {}
     annotations: {}
     nodePorts:
-      http:
+      http: 8099  # LoadBalancer HTTP 포트를 8099로 설정
       https:
     disableHttpPort: false
     extraPorts: []
