@@ -155,6 +155,7 @@ public class QuestionService {
                         .initialCode(questionRequest.getInitialCode())
                         .isCompare(questionRequest.getIsCompare())
                         .compareCode(questionRequest.getCompareCode())
+                        .isActive(questionRequest.getIsActive())
                         .createdBy(createdBy.getId())
                         .build();
 
@@ -199,6 +200,7 @@ public class QuestionService {
         existingQuestion.setInitialCode(questionRequest.getInitialCode());
         existingQuestion.setIsCompare(questionRequest.getIsCompare());
         existingQuestion.setCompareCode(questionRequest.getCompareCode());
+        existingQuestion.setIsActive(questionRequest.getIsActive());
         existingQuestion.setUpdatedAt(String.valueOf(System.currentTimeMillis()));
         
         QuestionEntity updatedQuestion = questionRepository.save(existingQuestion);
@@ -226,6 +228,36 @@ public class QuestionService {
     }
     
     /**
+     * Activate a question by its ID
+     * @param questionId The ID of the question to activate
+     * @param userId The ID of the user activating the question
+     * @throws RuntimeException if the question doesn't exist
+     */
+    public void activateQuestion(UUID questionId, UUID userId) {
+        QuestionEntity question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found with ID: " + questionId));
+        
+        question.setIsActive(true);
+        question.setUpdatedAt(String.valueOf(System.currentTimeMillis()));
+        questionRepository.save(question);
+    }
+    
+    /**
+     * Deactivate a question by its ID
+     * @param questionId The ID of the question to deactivate
+     * @param userId The ID of the user deactivating the question
+     * @throws RuntimeException if the question doesn't exist
+     */
+    public void deactivateQuestion(UUID questionId, UUID userId) {
+        QuestionEntity question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found with ID: " + questionId));
+        
+        question.setIsActive(false);
+        question.setUpdatedAt(String.valueOf(System.currentTimeMillis()));
+        questionRepository.save(question);
+    }
+    
+    /**
      * Map a QuestionEntity to a QuestionResponse
      * @param entity The entity to map
      * @return The mapped response
@@ -242,6 +274,7 @@ public class QuestionService {
                 .pass(entity.getPass())
                 .isCompare(entity.getIsCompare())
                 .compareCode(entity.getCompareCode())
+                .isActive(entity.getIsActive())
                 .createdBy(entity.getCreatedBy())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())

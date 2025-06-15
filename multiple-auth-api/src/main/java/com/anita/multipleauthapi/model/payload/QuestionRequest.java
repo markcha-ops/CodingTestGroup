@@ -26,4 +26,6 @@ public class QuestionRequest {
     private Boolean isCompare;
     
     private String compareCode;
+    
+    private Boolean isActive;
 } 

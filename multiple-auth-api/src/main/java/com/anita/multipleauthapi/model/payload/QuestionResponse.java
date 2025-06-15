@@ -24,6 +24,7 @@ public class QuestionResponse {
     private String initialCode;
     private Boolean isCompare;
     private String compareCode;
+    private Boolean isActive;
     private UUID createdBy;
     private String createdAt;
     private String updatedAt;

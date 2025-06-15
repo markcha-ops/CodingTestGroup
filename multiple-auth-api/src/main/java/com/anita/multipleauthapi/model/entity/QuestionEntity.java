@@ -34,6 +34,14 @@ public class QuestionEntity {
     @Column(name = "compare_code", columnDefinition = "TEXT")
     private String compareCode;
     
+    /**
+     * Indicates whether the question is active or not.
+     * If isActive is true (default), the question is active and visible.
+     * If isActive is false, the question is inactive and hidden.
+     */
+    @Column(name = "is_active")
+    private Boolean isActive;
+    
     @Column(name = "title")
     private String title;
     
@@ -77,6 +85,11 @@ public class QuestionEntity {
         // Set default value for isCompare if it's null
         if (this.isCompare == null) {
             this.isCompare = false;
+        }
+        
+        // Set default value for isActive if it's null
+        if (this.isActive == null) {
+            this.isActive = true;
         }
     }
 } 

@@ -87,4 +87,26 @@ public class QuestionController {
         QuestionResponse question = questionService.getQuestionById(questionId);
         return ResponseEntity.ok(question);
     }
+    
+    /**
+     * Activate a question by ID
+     */
+    @PutMapping("/questions/{questionId}/activate")
+    public ResponseEntity<String> activateQuestion(
+            @PathVariable UUID questionId,
+            @CurrentUser UserPrincipal userPrincipal) {
+        questionService.activateQuestion(questionId, userPrincipal.getId());
+        return ResponseEntity.ok("Question activated successfully");
+    }
+    
+    /**
+     * Deactivate a question by ID
+     */
+    @PutMapping("/questions/{questionId}/deactivate")
+    public ResponseEntity<String> deactivateQuestion(
+            @PathVariable UUID questionId,
+            @CurrentUser UserPrincipal userPrincipal) {
+        questionService.deactivateQuestion(questionId, userPrincipal.getId());
+        return ResponseEntity.ok("Question deactivated successfully");
+    }
 }
