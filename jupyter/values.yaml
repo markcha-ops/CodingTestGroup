@@ -233,12 +233,12 @@ proxy:
       http: 31099  # NodePort는 30000-32767 범위 내에서 설정
       https:
     disableHttpPort: false
-    extraPorts:
-      - name: http-8099
-        port: 8099  # LoadBalancer에서 8099 포트로 접근 가능
-        targetPort: 8000  # 내부 컨테이너 포트
-        protocol: TCP
-        nodePort: 31099  # NodePort 설정
+    # extraPorts:
+    #   - name: http-8099
+    #     port: 8099  # LoadBalancer에서 8099 포트로 접근 가능
+    #     targetPort: 8000  # 내부 컨테이너 포트
+    #     protocol: TCP
+    #     nodePort: 31099  # NodePort 설정
     externalIPs: []
     loadBalancerIP:
     loadBalancerSourceRanges: []
@@ -492,22 +492,7 @@ singleuser:
         mem_limit: "1G"
         mem_guarantee: "512M"
         storage_capacity: "5Gi"
-    - display_name: "고성능 환경 (4GB RAM, 10GB 스토리지)"
-      description: "대용량 데이터 처리 및 머신러닝 작업용"
-      kubespawner_override:
-        cpu_limit: 2
-        cpu_guarantee: 0.5
-        mem_limit: "4G"
-        mem_guarantee: "1G"
-        storage_capacity: "10Gi"
-    - display_name: "최고성능 환경 (8GB RAM, 20GB 스토리지)"
-      description: "대규모 데이터 분석 및 딥러닝 작업용 (관리자 승인 필요)"
-      kubespawner_override:
-        cpu_limit: 4
-        cpu_guarantee: 1
-        mem_limit: "8G"
-        mem_guarantee: "2G"
-        storage_capacity: "20Gi"
+   
 
 # scheduling relates to the user-scheduler pods and user-placeholder pods.
 scheduling:
@@ -818,3 +803,4 @@ debug:
 
 global:
   safeToShowValues: false
+ 
