@@ -38,20 +38,39 @@ public class CourseController {
     }
     @GetMapping("/course/current")
     public ResponseEntity<?> getCurrentCourse(@CurrentUser UserPrincipal userPrincipal) {
-        return ResponseEntity.ok(courseService.getCourseInfoById(userPrincipal.getCourseId()));
+        UUID courseId = userPrincipal.getCourseId();
+        
+        if (courseId == null) {
+            return ResponseEntity.badRequest().body("No current course selected");
+        }
+        
+        CourseEntity course = courseService.getCourseInfoById(courseId);
+        if (course == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        return ResponseEntity.ok(course);
     }
     
     @GetMapping("/course/students")
     public ResponseEntity<List<CourseStudentResponse>> getCourseStudents(@CurrentUser UserPrincipal userPrincipal) {
-        // Check if user has permission to view students (should be a course manager or admin)
-        return ResponseEntity.ok(courseService.getCourseStudents(userPrincipal));
+        try {
+            // Check if user has permission to view students (should be a course manager or admin)
+            return ResponseEntity.ok(courseService.getCourseStudents(userPrincipal));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
     
     @PostMapping("/course/students/{relationId}/approve")
     public ResponseEntity<?> approveStudentEnrollment(@CurrentUser UserPrincipal userPrincipal,
                                                      @PathVariable UUID relationId) {
-        courseService.approveStudentEnrollment(userPrincipal, relationId);
-        return ResponseEntity.ok("Student enrollment approved successfully");
+        try {
+            courseService.approveStudentEnrollment(userPrincipal, relationId);
+            return ResponseEntity.ok("Student enrollment approved successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/course/invite/{courseId}")

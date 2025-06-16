@@ -28,7 +28,10 @@ public class CourseService {
     private UserRepository userRepository;
 
     public CourseEntity getCourseInfoById(UUID id) {
-        return courseRepository.findById(id).get();
+        if (id == null) {
+            return null;
+        }
+        return courseRepository.findById(id).orElse(null);
     }
     public List<CourseEntity> getAllCourses() {
         return courseRepository.findAll();
@@ -99,6 +102,10 @@ public class CourseService {
     public void approveStudentEnrollment(UserPrincipal userPrincipal, UUID relationId) {
         UUID courseId = userPrincipal.getCourseId();
         
+        if (courseId == null) {
+            throw new RuntimeException("No current course selected");
+        }
+        
         // Get the relation by ID
         RelationsEntity relation = relationsRepository.findById(relationId)
                 .orElseThrow(() -> new RuntimeException("Relation not found with ID: " + relationId));
@@ -133,6 +140,11 @@ public class CourseService {
      */
     public List<CourseStudentResponse> getCourseStudents(UserPrincipal userPrincipal) {
         UUID courseId = userPrincipal.getCourseId();
+        
+        if (courseId == null) {
+            throw new RuntimeException("No current course selected");
+        }
+        
         // Check if course exists
         courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found with ID: " + courseId));
