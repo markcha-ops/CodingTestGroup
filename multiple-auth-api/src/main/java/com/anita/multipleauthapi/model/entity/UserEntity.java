@@ -2,6 +2,7 @@ package com.anita.multipleauthapi.model.entity;
 
 import com.anita.multipleauthapi.model.enums.AuthProvider;
 import com.anita.multipleauthapi.model.enums.AuthorityType;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class UserEntity {
 
     @Id @Column(name = "user_id")

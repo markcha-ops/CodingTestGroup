@@ -1,8 +1,5 @@
 package com.anita.multipleauthapi.model.payload;
 
-import com.anita.multipleauthapi.model.entity.LectureEntity;
-import com.anita.multipleauthapi.model.entity.QuestionEntity;
-import com.anita.multipleauthapi.model.entity.UrlInfoEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,8 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LectureDetailResponse {
-    private LectureEntity lecture;
-    private UrlInfoEntity pdfUrl;
-    private UrlInfoEntity videoUrl;
-    private List<QuestionEntity> questions;
+    private LectureResponseDto lecture;
+    private UrlInfoResponseDto pdfUrl;
+    private UrlInfoResponseDto videoUrl;
+    private List<QuestionResponseDto> questions;
 } 

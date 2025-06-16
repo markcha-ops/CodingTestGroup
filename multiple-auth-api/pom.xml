@@ -78,6 +78,16 @@
             <artifactId>jjwt</artifactId>
             <version>0.12.6</version>
         </dependency>
+        <!-- Jackson Hibernate Module for handling lazy loading -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-hibernate6</artifactId>
+        </dependency>
+        <!-- Jackson JSR310 Module for Java 8 Time API support -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
 
     </dependencies>
 

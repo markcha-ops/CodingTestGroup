@@ -8,6 +8,7 @@ import com.anita.multipleauthapi.model.enums.EntityType;
 import com.anita.multipleauthapi.model.enums.RelationsType;
 import com.anita.multipleauthapi.model.enums.StatusType;
 import com.anita.multipleauthapi.model.payload.LectureDetailResponse;
+import com.anita.multipleauthapi.model.payload.DtoMapper;
 import com.anita.multipleauthapi.repository.LectureEntityRepository;
 import com.anita.multipleauthapi.repository.RelationsEntityRepository;
 import com.anita.multipleauthapi.repository.UrlInfoEntityRepository;
@@ -231,12 +232,7 @@ public class LectureService {
         }
         
         // Return the structured response
-        return LectureDetailResponse.builder()
-                .lecture(lecture)
-                .pdfUrl(pdfUrl)
-                .videoUrl(videoUrl)
-                .questions(questions)
-                .build();
+        return DtoMapper.toLectureDetailResponse(lecture, pdfUrl, videoUrl, questions);
     }
 
     /**
