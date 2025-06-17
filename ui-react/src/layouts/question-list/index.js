@@ -239,13 +239,15 @@ function QuestionList() {
                 try {
                     // Prepare data for API (exclude server-generated fields)
                     const apiData = {
-                        courseId: '00000000-0000-0000-0000-000000000000', // Default courseId
                         title: questionData.title || '',
                         content: questionData.content || '',
                         language: questionData.language || 'PYTHON',
                         lv: questionData.lv || 1,
                         answer: questionData.answer || '',
                         initialCode: questionData.initialCode || '',
+                        inputData: questionData.inputData || '',
+                        testCases: questionData.testCases || '',
+                        isTestCase: questionData.isTestCase || false,
                         isCompare: questionData.isCompare || false,
                         compareCode: questionData.compareCode || ''
                     };
@@ -546,12 +548,28 @@ function QuestionList() {
                         <Typography variant="body2" component="pre" sx={{ fontSize: '0.75rem', overflow: 'auto' }}>
 {`[
   {
-    "title": "문제 제목",
-    "content": "문제 내용",
+    "title": "테스트 케이스 문제",
+    "content": "두 수를 더하는 프로그램을 작성하세요.",
     "language": "PYTHON",
     "lv": 5,
-    "answer": "정답",
-    "initialCode": "초기 코드",
+    "answer": "",
+    "initialCode": "",
+    "inputData": "",
+    "testCases": "[{\"input\":[5,2],\"output\":\"7\"},{\"input\":[6,2],\"output\":\"8\"}]",
+    "isTestCase": true,
+    "isCompare": false,
+    "compareCode": ""
+  },
+  {
+    "title": "단순 출력 문제",
+    "content": "숫자 100을 출력하세요.",
+    "language": "PYTHON",
+    "lv": 1,
+    "answer": "100",
+    "initialCode": "",
+    "inputData": "",
+    "testCases": "",
+    "isTestCase": false,
     "isCompare": false,
     "compareCode": ""
   }
