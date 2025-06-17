@@ -21,6 +21,7 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import Stack from "@mui/material/Stack";
 import Avatar from "@mui/material/Avatar";
 import { jwtDecode } from "jwt-decode";
@@ -163,6 +164,14 @@ function CourseStudents() {
         return student.email.split('@')[0] || '이름 없음';
     };
 
+    const handleViewStudentProblems = (student) => {
+        navigate('/course-students/student-problems', { 
+            state: { 
+                student: student 
+            } 
+        });
+    };
+
     return (
         <DashboardLayout>
             <DashboardNavbar />
@@ -235,6 +244,14 @@ function CourseStudents() {
                                                 <TableCell>{formatDate(student.updatedAt)}</TableCell>
                                                 <TableCell align="right">
                                                     <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                                        <Tooltip title="문제 풀이 현황">
+                                                            <IconButton 
+                                                                color="primary" 
+                                                                onClick={() => handleViewStudentProblems(student)}
+                                                            >
+                                                                <AssignmentIcon />
+                                                            </IconButton>
+                                                        </Tooltip>
                                                         {student.status === 'WAITING' && (
                                                             <Tooltip title="승인">
                                                                 <IconButton 

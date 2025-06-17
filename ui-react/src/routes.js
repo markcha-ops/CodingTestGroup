@@ -54,6 +54,7 @@ import CodingPage from "layouts/coding";
 import QuestionList from "layouts/question-list";
 import QuestionProblems from "layouts/question-problems";
 import CourseStudents from "layouts/course-students";
+import StudentProblems from "layouts/course-students/student-problems";
 import LectureList from "layouts/lecture-list";
 
 // @mui icons
@@ -204,6 +205,15 @@ const routes = [
     icon: <Icon fontSize="small">people</Icon>,
     route: "/course-students",
     component: <CourseStudents />,
+    hide: true,
+  },
+  {
+    type: "collapse",
+    name: "학생 문제 풀이 현황",
+    key: "student-problems",
+    icon: <Icon fontSize="small">assignment_ind</Icon>,
+    route: "/course-students/student-problems",
+    component: <StudentProblems />,
     hide: true,
   },
   {

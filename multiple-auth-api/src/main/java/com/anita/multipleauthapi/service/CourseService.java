@@ -176,6 +176,48 @@ public class CourseService {
                 .filter(response -> response != null)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Remove a student from the course by deleting their relation
+     * 
+     * @param userPrincipal The course manager/admin removing the student
+     * @param relationId The ID of the relation to remove
+     */
+    @Transactional
+    public void removeStudentFromCourse(UserPrincipal userPrincipal, UUID relationId) {
+        UUID courseId = userPrincipal.getCourseId();
+        
+        if (courseId == null) {
+            throw new RuntimeException("No current course selected");
+        }
+        
+        // Get the relation by ID
+        RelationsEntity relation = relationsRepository.findById(relationId)
+                .orElseThrow(() -> new RuntimeException("Relation not found with ID: " + relationId));
+        
+        // Verify this is a student-course relation for the current course
+        if (relation.getFromType() != EntityType.USER || relation.getToType() != EntityType.COURSE ||
+            relation.getRelationType() != RelationsType.CONTAINS_TYPE ||
+            !relation.getToId().equals(courseId)) {
+            throw new RuntimeException("Invalid relation or relation does not belong to current course");
+        }
+        
+        // Get the student ID from the relation
+        UUID studentId = relation.getFromId();
+        
+        // Remove the student's current course assignment
+        UserEntity student = userRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+        
+        // Only reset courseId if it matches the current course
+        if (courseId.equals(student.getCurrentCourseId())) {
+            student.setCurrentCourseId(null);
+            userRepository.save(student);
+        }
+        
+        // Delete the relation
+        relationsRepository.delete(relation);
+    }
     
     /**
      * Delete a course if the user has permission (is a course manager)

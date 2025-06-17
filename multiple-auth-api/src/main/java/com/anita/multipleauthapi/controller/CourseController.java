@@ -73,6 +73,17 @@ public class CourseController {
         }
     }
 
+    @DeleteMapping("/course/students/{relationId}")
+    public ResponseEntity<?> removeStudentFromCourse(@CurrentUser UserPrincipal userPrincipal,
+                                                    @PathVariable UUID relationId) {
+        try {
+            courseService.removeStudentFromCourse(userPrincipal, relationId);
+            return ResponseEntity.ok("Student removed from course successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/course/invite/{courseId}")
     public ResponseEntity<?> inviteUserToCourse(@CurrentUser UserPrincipal userPrincipal, @PathVariable UUID courseId) {
         courseService.inviteUserToCourse(userPrincipal.getId(), courseId);

@@ -39,6 +39,16 @@ public class QuestionController {
         List<QuestionResponse> questions = questionService.searchQuestions(userPrincipal, language, keyword, List.of(true));
         return ResponseEntity.ok(questions);
     }
+    @GetMapping("/questions/user/{userId}")
+    public ResponseEntity<List<QuestionResponse>> searchQuestionsUser(
+            @PathVariable("userId") UUID userId ,
+            @CurrentUser UserPrincipal userPrincipal2,
+            @RequestParam(required = false) LanguageType language,
+            @RequestParam(required = false) String keyword) {
+        UserPrincipal userPrincipal = new UserPrincipal(userId, null, null, userPrincipal2.getCourseId(), null);
+        List<QuestionResponse> questions = questionService.searchQuestions(userPrincipal, language, keyword, List.of(true));
+        return ResponseEntity.ok(questions);
+    }
     
     /**
      * Get questions created by the current user

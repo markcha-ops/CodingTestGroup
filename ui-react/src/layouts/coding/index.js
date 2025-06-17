@@ -723,15 +723,15 @@ function CodingPage() {
                                             </MDBox>
                                         ) : submissionResult ? (
                                             <MDBox>
-                                                                                {/* 정답/오답 판정 */}
+                                                {/* 정답/오답 판정 */}
                                 {submissionResult.score !== undefined && (
-                                    <Alert 
+                                                    <Alert 
                                         severity={submissionResult.score === 100 ? "success" : "error"} 
-                                        sx={{ mb: 2 }}
-                                    >
+                                                        sx={{ mb: 2 }}
+                                                    >
                                         {submissionResult.score === 100 ? "정답입니다!" : "오답입니다."}
-                                    </Alert>
-                                )}
+                                                    </Alert>
+                                                )}
                                                 
                                                 {/* 점수 표시 */}
                                                 {submissionResult.score !== undefined && (
