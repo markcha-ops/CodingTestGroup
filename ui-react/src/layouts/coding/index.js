@@ -63,6 +63,7 @@ function CodingPage() {
     const [error, setError] = useState(null);
     const [code, setCode] = useState('');
     const [language, setLanguage] = useState('');
+    const [inputData, setInputData] = useState('');
     const [executionResult, setExecutionResult] = useState(null);
     const [submissionResult, setSubmissionResult] = useState(null);
     const [executing, setExecuting] = useState(false);
@@ -112,6 +113,11 @@ function CodingPage() {
                         // Set template code based on language
                         const template = languageOptions.find(opt => opt.value === response.data.language)?.template || '';
                         setCode(template);
+                    }
+                    
+                    // Set input data if available
+                    if (response.data.inputData) {
+                        setInputData(response.data.inputData);
                     }
                     
                     // Check if question has been solved
@@ -189,7 +195,7 @@ function CodingPage() {
             const response = await api.post('/api/submissions/debug', {
                 code: code,
                 language: language,
-                inputData: question?.inputData || null
+                inputData: inputData || question?.inputData || null
             });
             
             setExecutionResult(response.data);
@@ -243,7 +249,7 @@ function CodingPage() {
             const response = await api.post('/api/submissions/debug', {
                 code: code,
                 language: 'SQL',
-                inputData: question?.inputData || null
+                inputData: inputData || question?.inputData || null
             });
             
             setExecutionResult(response.data);
@@ -571,6 +577,29 @@ function CodingPage() {
                                                 }}
                                             />
                                         </div>
+                                        
+                                        {/* 입력 데이터 섹션 */}
+                                        <MDBox sx={{ borderTop: '1px solid #e0e0e0', p: 2 }}>
+                                            <MDTypography variant="subtitle2" fontWeight="medium" sx={{ mb: 1 }}>
+                                                입력 데이터 (Python input() 함수 등)
+                                            </MDTypography>
+                                            <TextField
+                                                fullWidth
+                                                multiline
+                                                rows={3}
+                                                variant="outlined"
+                                                placeholder="프로그램에 입력할 데이터를 한 줄씩 입력하세요&#10;예: 5&#10;3&#10;Hello World"
+                                                value={inputData}
+                                                onChange={(e) => setInputData(e.target.value)}
+                                                size="small"
+                                                sx={{
+                                                    '& .MuiOutlinedInput-root': {
+                                                        fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace",
+                                                        fontSize: '13px',
+                                                    }
+                                                }}
+                                            />
+                                        </MDBox>
                                     </CardContent>
                                 </Card>
                             </Resizable>
