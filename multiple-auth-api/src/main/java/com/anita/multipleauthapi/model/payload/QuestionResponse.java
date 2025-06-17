@@ -23,6 +23,8 @@ public class QuestionResponse {
     private String answer;
     private String initialCode;
     private String inputData;
+    private String testCases;
+    private Boolean isTestCase;
     private Boolean isCompare;
     private String compareCode;
     private Boolean isActive;

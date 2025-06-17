@@ -190,6 +190,7 @@ function CodingPage() {
     const handleExecute = async () => {
         setExecuting(true);
         setExecutionResult(null);
+        setSubmissionResult(null);
         
         try {
             const response = await api.post('/api/submissions/debug', {
@@ -215,6 +216,7 @@ function CodingPage() {
     const handleSubmit = async () => {
         setSubmitting(true);
         setSubmissionResult(null);
+        setExecutionResult(null);
         
         try {
             const response = await api.post(`/api/submissions/questions/${questionId}`, {
@@ -244,6 +246,7 @@ function CodingPage() {
     const handleSqlDebug = async () => {
         setExecuting(true);
         setExecutionResult(null);
+        setSubmissionResult(null);
         
         try {
             const response = await api.post('/api/submissions/debug', {

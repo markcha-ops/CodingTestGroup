@@ -64,12 +64,14 @@ public class QuestionEntity {
     @Column(name = "initial_code", columnDefinition = "TEXT")
     private String initialCode;
     
-    /**
-     * Input data for test cases (for programs that use input() function)
-     * Multiple inputs can be separated by newlines
-     */
     @Column(name = "input_data", columnDefinition = "TEXT")
     private String inputData;
+    
+    @Column(name = "test_cases", columnDefinition = "TEXT")
+    private String testCases;
+    
+    @Column(name = "is_test_case")
+    private Boolean isTestCase;
     
     @Column(name = "created_by")
     private UUID createdBy;

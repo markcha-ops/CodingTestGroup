@@ -13,6 +13,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuestionRequest {
+    private UUID courseId;
+    
     private String title;
     private String content;
     private LanguageType language;
@@ -24,6 +26,10 @@ public class QuestionRequest {
     private String initialCode;
     
     private String inputData;
+    
+    private String testCases;
+    
+    private Boolean isTestCase;
     
     private Boolean isCompare;
     

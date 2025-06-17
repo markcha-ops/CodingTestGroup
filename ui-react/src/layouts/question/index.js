@@ -19,6 +19,13 @@ import CodeIcon from "@mui/icons-material/Code";
 import CircularProgress from "@mui/material/CircularProgress";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
+import RadioGroup from "@mui/material/RadioGroup";
+import Radio from "@mui/material/Radio";
+import FormLabel from "@mui/material/FormLabel";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -51,11 +58,17 @@ function Question() {
         answer: '',
         initialCode: '',
         inputData: '',
+        testCases: '',
         language: 'PYTHON',
         lv: 5,
         isCompare: false,
         compareCode: ''
     });
+    
+    const [inputMode, setInputMode] = useState('simple'); // 'simple' or 'testcases'
+    const [testCasesArray, setTestCasesArray] = useState([
+        { input: '', output: '' }
+    ]);
     
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -116,11 +129,33 @@ function Question() {
                 answer: questionData.answer,
                 initialCode: questionData.initialCode,
                 inputData: questionData.inputData,
+                testCases: questionData.testCases,
                 language: questionData.language,
                 lv: questionData.lv,
                 isCompare: questionData.isCompare || false,
                 compareCode: questionData.compareCode || ''
             });
+            
+            // Set input mode based on isTestCase value
+            if (questionData.isTestCase) {
+                setInputMode('testcases');
+                // Parse test cases if they exist
+                if (questionData.testCases) {
+                    try {
+                        const parsedTestCases = JSON.parse(questionData.testCases);
+                        if (Array.isArray(parsedTestCases) && parsedTestCases.length > 0) {
+                            setTestCasesArray(parsedTestCases.map(tc => ({
+                                input: Array.isArray(tc.input) ? tc.input.join('\n') : tc.input.toString(),
+                                output: tc.output
+                            })));
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse test cases:', e);
+                    }
+                }
+            } else {
+                setInputMode('simple');
+            }
             
             setError(null);
         } catch (err) {
@@ -175,6 +210,27 @@ function Question() {
         }));
     };
 
+    const handleInputModeChange = (e) => {
+        setInputMode(e.target.value);
+    };
+
+    const handleTestCaseChange = (index, field, value) => {
+        const updatedTestCases = [...testCasesArray];
+        updatedTestCases[index][field] = value;
+        setTestCasesArray(updatedTestCases);
+    };
+
+    const addTestCase = () => {
+        setTestCasesArray([...testCasesArray, { input: '', output: '' }]);
+    };
+
+    const removeTestCase = (index) => {
+        if (testCasesArray.length > 1) {
+            const updatedTestCases = testCasesArray.filter((_, i) => i !== index);
+            setTestCasesArray(updatedTestCases);
+        }
+    };
+
     const handleSubmit = async () => {
         // Validate form data
         if (!question.title.trim()) {
@@ -196,16 +252,35 @@ function Question() {
         try {
             setLoading(true);
             
+            // Process test cases based on input mode
+            let testCasesData = '';
+            let inputDataString = question.inputData;
+            
+            if (inputMode === 'testcases') {
+                // Convert test cases array to JSON string
+                const formattedTestCases = testCasesArray.map(tc => ({
+                    input: tc.input.split('\n').map(line => {
+                        // Try to convert to number if possible
+                        const trimmed = line.trim();
+                        return /^\d+$/.test(trimmed) ? parseInt(trimmed) : trimmed;
+                    }),
+                    output: tc.output
+                }));
+                testCasesData = JSON.stringify(formattedTestCases);
+                inputDataString = ''; // Clear simple input data when using test cases
+            }
+            
             // Prepare data for API according to backend structure
             const questionData = {
-                courseId: courseId, // Use the courseId from location state
                 title: question.title,
                 content: question.content,
                 language: question.language,
                 lv: parseInt(question.lv),
                 answer: question.answer,
                 initialCode: question.initialCode,
-                inputData: question.inputData,
+                inputData: inputDataString,
+                testCases: testCasesData,
+                isTestCase: inputMode === 'testcases', // 테스트 케이스 배열인지 단순 입력 데이터인지 구분
                 isCompare: question.isCompare,
                 compareCode: question.compareCode
             };
@@ -229,11 +304,33 @@ function Question() {
                 answer: responseData.answer,
                 initialCode: responseData.initialCode,
                 inputData: responseData.inputData,
+                testCases: responseData.testCases,
                 language: responseData.language,
                 lv: responseData.lv,
                 isCompare: responseData.isCompare || false,
                 compareCode: responseData.compareCode || ''
             });
+            
+            // Set input mode based on isTestCase value from response
+            if (responseData.isTestCase) {
+                setInputMode('testcases');
+                // Parse test cases if they exist
+                if (responseData.testCases) {
+                    try {
+                        const parsedTestCases = JSON.parse(responseData.testCases);
+                        if (Array.isArray(parsedTestCases) && parsedTestCases.length > 0) {
+                            setTestCasesArray(parsedTestCases.map(tc => ({
+                                input: Array.isArray(tc.input) ? tc.input.join('\n') : tc.input.toString(),
+                                output: tc.output
+                            })));
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse test cases:', e);
+                    }
+                }
+            } else {
+                setInputMode('simple');
+            }
             
             // 3초 후 성공 메시지 숨기기
             setTimeout(() => {
@@ -386,23 +483,111 @@ function Question() {
                             
                             <Grid item xs={12}>
                                 <MDTypography variant="h6" color="text" gutterBottom>
-                                    테스트 입력 데이터
+                                    입력 데이터 설정
                                 </MDTypography>
-                                <MDTypography variant="caption" color="text" display="block" gutterBottom>
-                                    Python의 input() 함수나 Java의 Scanner 등을 사용하는 문제의 경우 입력 데이터를 제공하세요. 
-                                    여러 줄의 입력이 필요한 경우 줄바꿈으로 구분하여 입력하세요.
-                                </MDTypography>
-                                <TextField
-                                    multiline
-                                    rows={6}
-                                    name="inputData"
-                                    value={question.inputData}
-                                    onChange={handleInputDataChange}
-                                    variant="outlined"
-                                    placeholder="테스트 케이스의 입력 데이터를 입력하세요 (예: 5\n3\nHello World)"
-                                    fullWidth
-                                    margin="normal"
-                                />
+                                
+                                <FormControl component="fieldset" margin="normal">
+                                    <FormLabel component="legend">입력 방식 선택</FormLabel>
+                                    <RadioGroup
+                                        value={inputMode}
+                                        onChange={handleInputModeChange}
+                                        row
+                                    >
+                                        <FormControlLabel
+                                            value="simple"
+                                            control={<Radio />}
+                                            label="단순 입력 데이터"
+                                        />
+                                        <FormControlLabel
+                                            value="testcases"
+                                            control={<Radio />}
+                                            label="테스트 케이스 배열"
+                                        />
+                                    </RadioGroup>
+                                </FormControl>
+
+                                {inputMode === 'simple' ? (
+                                    <Box>
+                                        <MDTypography variant="body2" color="text" gutterBottom>
+                                            Python의 input() 함수나 Java의 Scanner 등을 사용하는 문제의 경우 입력 데이터를 제공하세요. 
+                                            여러 줄의 입력이 필요한 경우 줄바꿈으로 구분하여 입력하세요.
+                                        </MDTypography>
+                                        <TextField
+                                            multiline
+                                            rows={6}
+                                            name="inputData"
+                                            value={question.inputData}
+                                            onChange={handleInputDataChange}
+                                            variant="outlined"
+                                            placeholder="테스트 케이스의 입력 데이터를 입력하세요 (예: 5\n3\nHello World)"
+                                            fullWidth
+                                            margin="normal"
+                                        />
+                                    </Box>
+                                ) : (
+                                    <Box>
+                                        <MDTypography variant="body2" color="text" gutterBottom>
+                                            여러 개의 입력-출력 테스트 케이스를 정의하세요. 각 테스트 케이스마다 다른 입력값과 예상 출력값을 설정할 수 있습니다.
+                                        </MDTypography>
+                                        
+                                        {testCasesArray.map((testCase, index) => (
+                                            <Card key={index} variant="outlined" sx={{ mb: 2, p: 2 }}>
+                                                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                                                    <MDTypography variant="h6" color="text">
+                                                        테스트 케이스 {index + 1}
+                                                    </MDTypography>
+                                                    {testCasesArray.length > 1 && (
+                                                        <IconButton
+                                                            color="error"
+                                                            onClick={() => removeTestCase(index)}
+                                                            size="small"
+                                                        >
+                                                            <DeleteIcon />
+                                                        </IconButton>
+                                                    )}
+                                                </Box>
+                                                
+                                                <Grid container spacing={2}>
+                                                    <Grid item xs={12} md={6}>
+                                                        <TextField
+                                                            label="입력값"
+                                                            multiline
+                                                            rows={4}
+                                                            value={testCase.input}
+                                                            onChange={(e) => handleTestCaseChange(index, 'input', e.target.value)}
+                                                            placeholder="입력값을 한 줄씩 입력하세요&#10;예:&#10;5&#10;10"
+                                                            fullWidth
+                                                            variant="outlined"
+                                                        />
+                                                    </Grid>
+                                                    <Grid item xs={12} md={6}>
+                                                        <TextField
+                                                            label="예상 출력값"
+                                                            multiline
+                                                            rows={4}
+                                                            value={testCase.output}
+                                                            onChange={(e) => handleTestCaseChange(index, 'output', e.target.value)}
+                                                            placeholder="예상되는 출력값을 입력하세요"
+                                                            fullWidth
+                                                            variant="outlined"
+                                                        />
+                                                    </Grid>
+                                                </Grid>
+                                            </Card>
+                                        ))}
+                                        
+                                        <Box display="flex" justifyContent="center" mt={2}>
+                                            <MDButton
+                                                variant="outlined"
+                                                color="info"
+                                                startIcon={<AddIcon />}
+                                                onClick={addTestCase}
+                                            >
+                                                테스트 케이스 추가
+                                            </MDButton>
+                                        </Box>
+                                    </Box>
+                                )}
                             </Grid>
                             
                             <Grid item xs={12}>

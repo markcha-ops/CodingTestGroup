@@ -8,11 +8,13 @@ import com.anita.multipleauthapi.model.entity.SubmissionEntity;
 import com.anita.multipleauthapi.model.entity.UserEntity;
 import com.anita.multipleauthapi.model.payload.DebugResponse;
 import com.anita.multipleauthapi.model.payload.SubmissionResponse;
-import com.anita.multipleauthapi.model.payload.UserResponse;
+import com.anita.multipleauthapi.model.TestCase;
 import com.anita.multipleauthapi.repository.QuestionRepository;
 import com.anita.multipleauthapi.repository.SubmissionRepository;
 import com.anita.multipleauthapi.repository.UserRepository;
 import com.anita.multipleauthapi.security.UserPrincipal;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -31,11 +33,12 @@ public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final QuestionRepository questionRepository;
     private final DockerService dockerService;
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final ObjectMapper objectMapper;
     
     private static final int DEFAULT_TIMEOUT_SECONDS = 10;
     private static final int DEBUG_TIMEOUT_SECONDS = 15;
-    private final UserRepository userRepository;
-    private final UserService userService;
 
     /**
      * Debug code without saving to database
@@ -142,6 +145,148 @@ public class SubmissionService {
         }
     }
 
+    /**
+     * Parse test cases from JSON string
+     * 
+     * @param testCasesJson JSON string containing test cases
+     * @return List of test cases
+     */
+    private List<TestCase> parseTestCases(String testCasesJson) {
+        try {
+            return objectMapper.readValue(testCasesJson, new TypeReference<List<TestCase>>() {});
+        } catch (Exception e) {
+            log.error("Error parsing test cases: {}", e.getMessage(), e);
+            return List.of();
+        }
+    }
+
+    /**
+     * Execute code against multiple test cases
+     * 
+     * @param language Programming language
+     * @param code User code to execute
+     * @param initialCode Initial code (if any)
+     * @param testCases List of test cases
+     * @param timeout Execution timeout
+     * @return True if all test cases pass, false otherwise
+     */
+    private boolean executeTestCases(LanguageType language, String code, String initialCode, List<TestCase> testCases, int timeout) {
+        log.info("Executing {} test cases", testCases.size());
+        
+        for (int i = 0; i < testCases.size(); i++) {
+            TestCase testCase = testCases.get(i);
+            String inputData = testCase.getInputAsString();
+            String expectedOutput = testCase.getOutput().trim();
+            
+            log.info("Running test case {}: input='{}', expected='{}'", i + 1, inputData, expectedOutput);
+            
+            try {
+                DockerService.ExecutionResult result = dockerService.executeCode(
+                        language, code, initialCode, inputData, timeout
+                );
+                
+                String actualOutput = result.getStdout().trim();
+                log.info("Test case {} result: actual='{}', expected='{}'", i + 1, actualOutput, expectedOutput);
+                
+                if (result.getExitCode() != 0) {
+                    log.info("Test case {} failed with exit code {}: {}", i + 1, result.getExitCode(), result.getStderr());
+                    return false;
+                }
+                
+                if (!actualOutput.equals(expectedOutput)) {
+                    log.info("Test case {} failed: output mismatch", i + 1);
+                    return false;
+                }
+                
+            } catch (Exception e) {
+                log.error("Error executing test case {}: {}", i + 1, e.getMessage(), e);
+                return false;
+            }
+        }
+        
+        log.info("All test cases passed!");
+        return true;
+    }
+
+        /**
+     * Execute test cases using inputData approach (new logic for isTestCase=true)
+     * Parse testCases JSON and execute each test case using input as inputData
+     * 
+     * @param language      Programming language
+     * @param code          User's code to execute
+     * @param initialCode   Initial code/setup
+     * @param testCasesJson JSON string containing test cases with input and output
+     * @param timeout       Execution timeout in seconds
+     * @param resultText    StringBuilder to collect test case results
+     * @return true if all test cases pass, false otherwise
+     */
+    private boolean executeTestCasesWithInputData(LanguageType language, String code, String initialCode, String testCasesJson, int timeout, StringBuilder resultText) {
+        try {
+            // Parse testCases JSON string to List<Map>
+            List<Map<String, Object>> testCasesList = objectMapper.readValue(testCasesJson, 
+                new TypeReference<List<Map<String, Object>>>() {});
+            
+            for (Map<String, Object> testCase : testCasesList) {
+                // Get input and expected output from test case
+                Object inputObj = testCase.get("input");
+                String expectedOutput = String.valueOf(testCase.get("output"));
+                
+                // Convert input to string format for dockerService.executeCode
+                String inputData = convertInputToString(inputObj);
+                
+                // Execute code with this input
+                DockerService.ExecutionResult result = dockerService.executeCode(
+                    language,
+                    code,
+                    initialCode,
+                    inputData,
+                    timeout
+                );
+                
+                // Check if execution was successful
+                if (result.getExitCode() != 0) {
+                    log.warn("Test case failed with exit code: {}, stderr: {}", result.getExitCode(), result.getStderr());
+                    return false;
+                }
+                
+                // Compare output
+                String actualOutput = result.getStdout().trim();
+                if (!actualOutput.equals(expectedOutput.trim())) {
+                    log.debug("Test case failed. Expected: '{}', Actual: '{}'", expectedOutput, actualOutput);
+                    return false;
+                }
+                resultText.append(String.format("%s -> %s\n", inputObj, expectedOutput));
+            }
+            
+            return true; // All test cases passed
+            
+        } catch (Exception e) {
+            log.error("Error parsing or executing test cases: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+    
+    /**
+     * Convert input object to string format suitable for dockerService.executeCode
+     * 
+     * @param inputObj Input object (can be array, single value, etc.)
+     * @return String representation of input data
+     */
+    private String convertInputToString(Object inputObj) {
+        if (inputObj == null) {
+            return "";
+        }
+        
+        if (inputObj instanceof List) {
+            List<?> inputList = (List<?>) inputObj;
+            // Join list elements with newlines for multi-line input
+            return inputList.stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining("\n"));
+        } else {
+            return String.valueOf(inputObj);
+        }
+    }
 
     /**
      * Process a code submission and grade it
@@ -189,9 +334,38 @@ public class SubmissionService {
             String userOutput = executionResult.getStdout().trim();
             String expectedOutput = "";
             boolean hasPassed = false;
-
-            // If question uses comparison code, execute the comparison code
-            if (Boolean.TRUE.equals(question.getIsCompare()) && question.getCompareCode() != null) {
+            StringBuilder resultText = new StringBuilder();
+            boolean dontHaveTestCase  = false;
+            // Check if question uses test cases (new isTestCase flag)
+            if (Boolean.TRUE.equals(question.getIsTestCase()) && question.getTestCases() != null && !question.getTestCases().trim().isEmpty()) {
+                // Execute against multiple test cases using new logic
+                hasPassed = executeTestCasesWithInputData(
+                        submissionRequest.getLanguage(),
+                        submissionRequest.getCode(),
+                        question.getInitialCode(),
+                        question.getTestCases(),
+                        DEFAULT_TIMEOUT_SECONDS,
+                        resultText
+                );
+                expectedOutput = hasPassed?"Pass All test Cases!":"All test cases must pass";
+            } else if (question.getTestCases() != null && !question.getTestCases().trim().isEmpty()) {
+                // Legacy: Execute against multiple test cases (old logic)
+                List<TestCase> testCases = parseTestCases(question.getTestCases());
+                if (!testCases.isEmpty()) {
+                    hasPassed = executeTestCases(
+                            submissionRequest.getLanguage(),
+                            submissionRequest.getCode(),
+                            question.getInitialCode(),
+                            testCases,
+                            DEFAULT_TIMEOUT_SECONDS
+                    );
+                    expectedOutput = String.format("All %d test cases must pass", testCases.size());
+                } else {
+                    // Fallback to regular execution if test cases parsing failed
+                    expectedOutput = question.getAnswer().trim();
+                    hasPassed = userOutput.equals(expectedOutput);
+                }
+            } else if (Boolean.TRUE.equals(question.getIsCompare()) && question.getCompareCode() != null) {
                 // Execute the comparison code to get expected output
                 DockerService.ExecutionResult comparisonResult = dockerService.executeCode(
                         question.getLanguage(),
@@ -206,23 +380,37 @@ public class SubmissionService {
                 // Use direct answer comparison
                 expectedOutput = question.getAnswer().trim();
                 hasPassed = userOutput.equals(expectedOutput);
+                dontHaveTestCase = true;
             }
-
+            String expectOutput = "";
             // Calculate score (100 if pass, 0 if fail)
-            int score = hasPassed ? 100 : 0;
+            int score;
+            if (dontHaveTestCase) {
+                score = userOutput.equals(expectedOutput) ? 100 : 0;
+            } else {
+                score = hasPassed ? 100 : 0;
+                if (score == 100) {
+                    expectOutput = resultText.toString();
+                } else {
+                    expectOutput = "Failed";
+
+                }
+
+            }
 
             // Update submission with results
             submission.setScore(score);
-            submission.setOutput(userOutput);
-            submission.setError(executionResult.getStderr());
-            submission.setExpectedOutput(expectedOutput);
+            submission.setOutput(!dontHaveTestCase?expectOutput:userOutput);
+            submission.setError(!dontHaveTestCase?"":executionResult.getStderr());
+            submission.setExpectedOutput(!dontHaveTestCase?resultText.toString():expectedOutput);
             submission.setExecutionTime(executionResult.getExecutionTime());
             submission.setStatus("COMPLETED");
 
             submissionRepository.save(submission);
 
             // Create and return response
-            return mapToResponse(submission);
+            SubmissionResponse submissionResponse = mapToResponse(submission);
+            return submissionResponse;
 
         } catch (Exception e) {
             log.error("Error processing submission: {}", e.getMessage(), e);

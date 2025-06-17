@@ -141,7 +141,12 @@ public class QuestionService {
      */
     public QuestionResponse createQuestion(QuestionRequest questionRequest, UserPrincipal createdBy) {
         Optional<UserEntity> optionalUserEntity = userRepository.findById(createdBy.getId());
-        Optional<CourseEntity> optionalCourseEntity = courseEntityRepository.findById(createdBy.getCourseId());
+        
+        // Use courseId from request if provided, otherwise use the one from UserPrincipal
+        UUID courseIdToUse = questionRequest.getCourseId() != null ? 
+            questionRequest.getCourseId() : createdBy.getCourseId();
+        
+        Optional<CourseEntity> optionalCourseEntity = courseEntityRepository.findById(optionalUserEntity.get().getCurrentCourseId());
 
         if (optionalUserEntity.isPresent()) {
             if (optionalCourseEntity.isPresent()) {
@@ -154,6 +159,8 @@ public class QuestionService {
                         .answer(questionRequest.getAnswer())
                         .initialCode(questionRequest.getInitialCode())
                         .inputData(questionRequest.getInputData())
+                        .testCases(questionRequest.getTestCases())
+                        .isTestCase(questionRequest.getIsTestCase())
                         .isCompare(questionRequest.getIsCompare())
                         .compareCode(questionRequest.getCompareCode())
                         .isActive(questionRequest.getIsActive())
@@ -200,6 +207,8 @@ public class QuestionService {
         existingQuestion.setAnswer(questionRequest.getAnswer());
         existingQuestion.setInitialCode(questionRequest.getInitialCode());
         existingQuestion.setInputData(questionRequest.getInputData());
+        existingQuestion.setTestCases(questionRequest.getTestCases());
+        existingQuestion.setIsTestCase(questionRequest.getIsTestCase());
         existingQuestion.setIsCompare(questionRequest.getIsCompare());
         existingQuestion.setCompareCode(questionRequest.getCompareCode());
         existingQuestion.setIsActive(questionRequest.getIsActive());
@@ -274,6 +283,8 @@ public class QuestionService {
                 .answer(entity.getAnswer())
                 .initialCode(entity.getInitialCode())
                 .inputData(entity.getInputData())
+                .testCases(entity.getTestCases())
+                .isTestCase(entity.getIsTestCase())
                 .pass(entity.getPass())
                 .isCompare(entity.getIsCompare())
                 .compareCode(entity.getCompareCode())
