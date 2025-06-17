@@ -153,6 +153,7 @@ public class QuestionService {
                         .lv(questionRequest.getLv())
                         .answer(questionRequest.getAnswer())
                         .initialCode(questionRequest.getInitialCode())
+                        .inputData(questionRequest.getInputData())
                         .isCompare(questionRequest.getIsCompare())
                         .compareCode(questionRequest.getCompareCode())
                         .isActive(questionRequest.getIsActive())
@@ -198,6 +199,7 @@ public class QuestionService {
         existingQuestion.setLv(questionRequest.getLv());
         existingQuestion.setAnswer(questionRequest.getAnswer());
         existingQuestion.setInitialCode(questionRequest.getInitialCode());
+        existingQuestion.setInputData(questionRequest.getInputData());
         existingQuestion.setIsCompare(questionRequest.getIsCompare());
         existingQuestion.setCompareCode(questionRequest.getCompareCode());
         existingQuestion.setIsActive(questionRequest.getIsActive());
@@ -271,6 +273,7 @@ public class QuestionService {
                 .lv(entity.getLv())
                 .answer(entity.getAnswer())
                 .initialCode(entity.getInitialCode())
+                .inputData(entity.getInputData())
                 .pass(entity.getPass())
                 .isCompare(entity.getIsCompare())
                 .compareCode(entity.getCompareCode())

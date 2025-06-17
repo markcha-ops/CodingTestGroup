@@ -23,6 +23,8 @@ public class QuestionRequest {
 
     private String initialCode;
     
+    private String inputData;
+    
     private Boolean isCompare;
     
     private String compareCode;

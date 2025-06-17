@@ -1,0 +1,45 @@
+version: '3'
+services:
+  nginx2:
+    restart: always
+    build:
+      dockerfile: Dockerfile.test
+      context: ./nginx
+    container_name: app_nginx-production2222
+    environment:
+      - TZ=Asia/Seoul
+    ports:
+      - "4212:80"
+    networks:
+      - app-network
+  multiple-auth-api:
+    build:
+      context: ./multiple-auth-api
+      dockerfile: Dockerfile.prod
+    container_name: multiple-auth-api
+    restart: always
+    environment:
+      - TZ=Asia/Seoul
+      - DATABASE_HOST=112.216.32.6
+      - DATABASE_NAME=mydatabase
+      - DATABASE_USER=vetec
+      - DATABASE_PASSWORD=vetec3721!
+      - GOOGLE_CLIENT_ID=248031988422-0j2ls4adbo6i9v0jko7mdq014qiu5id5.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=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
+      - GITHUB_CLIENT_ID=248031988422-0j2ls4adbo6i9v0jko7mdq014qiu5id5.apps.googleusercontent.com
+      - GITHUB_CLIENT_SECRET=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
+      - AUTH_TOKEN_SECRET=c3ByaW5nLWJvb3Qtc2VjdXJpdHktand0LXR1dG9yaWFsLWppd29vbi1zcHJpbmctYm9vdC1zZWN1cml0eS1qd3QtdHV0b3JpYWwK
+      - baseUrl=http://localhost:4212
+      - SPRING_PROFILE=prod
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/code-execution:/tmp/code-execution:rw
+    privileged: true
+      # - ./:/app
+    networks:
+      - app-network
+    ports:
+      - "8080:8080"
+networks:
+  app-network:
+    driver: bridge

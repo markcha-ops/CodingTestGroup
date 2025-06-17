@@ -22,6 +22,7 @@ public class QuestionResponse {
     private Boolean pass;
     private String answer;
     private String initialCode;
+    private String inputData;
     private Boolean isCompare;
     private String compareCode;
     private Boolean isActive;

@@ -47,6 +47,7 @@ function DevTool() {
     // State variables
     const [code, setCode] = useState('');
     const [language, setLanguage] = useState('PYTHON');
+    const [inputData, setInputData] = useState('');
     const [executionResult, setExecutionResult] = useState(null);
     const [executing, setExecuting] = useState(false);
     
@@ -111,7 +112,8 @@ function DevTool() {
         try {
             const response = await api.post('/api/submissions/debug', {
                 code: code,
-                language: language
+                language: language,
+                inputData: inputData || null
             });
             
             setExecutionResult(response.data);
@@ -135,7 +137,8 @@ function DevTool() {
         try {
             const response = await api.post('/api/submissions/debug', {
                 code: code,
-                language: 'SQL'
+                language: 'SQL',
+                inputData: inputData || null
             });
             
             setExecutionResult(response.data);
@@ -248,6 +251,29 @@ function DevTool() {
                                         }}
                                     />
                                 </div>
+                                
+                                {/* 입력 데이터 섹션 */}
+                                <MDBox sx={{ borderTop: '1px solid #e0e0e0', p: 2 }}>
+                                    <MDTypography variant="subtitle2" fontWeight="medium" sx={{ mb: 1 }}>
+                                        입력 데이터 (Python input() 함수 등)
+                                    </MDTypography>
+                                    <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={3}
+                                        variant="outlined"
+                                        placeholder="프로그램에 입력할 데이터를 한 줄씩 입력하세요&#10;예: 5&#10;3&#10;Hello World"
+                                        value={inputData}
+                                        onChange={(e) => setInputData(e.target.value)}
+                                        size="small"
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace",
+                                                fontSize: '13px',
+                                            }
+                                        }}
+                                    />
+                                </MDBox>
                             </CardContent>
                         </Card>
                     </Resizable>

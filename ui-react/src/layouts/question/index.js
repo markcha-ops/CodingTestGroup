@@ -50,6 +50,7 @@ function Question() {
         content: '',
         answer: '',
         initialCode: '',
+        inputData: '',
         language: 'PYTHON',
         lv: 5,
         isCompare: false,
@@ -114,6 +115,7 @@ function Question() {
                 content: questionData.content,
                 answer: questionData.answer,
                 initialCode: questionData.initialCode,
+                inputData: questionData.inputData,
                 language: questionData.language,
                 lv: questionData.lv,
                 isCompare: questionData.isCompare || false,
@@ -158,6 +160,13 @@ function Question() {
         }));
     };
     
+    const handleInputDataChange = (e) => {
+        setQuestion(prev => ({
+            ...prev,
+            inputData: e.target.value
+        }));
+    };
+
     const handleSwitchChange = (e) => {
         const { name, checked } = e.target;
         setQuestion(prev => ({
@@ -196,6 +205,7 @@ function Question() {
                 lv: parseInt(question.lv),
                 answer: question.answer,
                 initialCode: question.initialCode,
+                inputData: question.inputData,
                 isCompare: question.isCompare,
                 compareCode: question.compareCode
             };
@@ -218,6 +228,7 @@ function Question() {
                 content: responseData.content,
                 answer: responseData.answer,
                 initialCode: responseData.initialCode,
+                inputData: responseData.inputData,
                 language: responseData.language,
                 lv: responseData.lv,
                 isCompare: responseData.isCompare || false,
@@ -368,6 +379,27 @@ function Question() {
                                     onChange={handleInputChange}
                                     variant="outlined"
                                     placeholder="문제의 정답 문자열을 입력하세요"
+                                    fullWidth
+                                    margin="normal"
+                                />
+                            </Grid>
+                            
+                            <Grid item xs={12}>
+                                <MDTypography variant="h6" color="text" gutterBottom>
+                                    테스트 입력 데이터
+                                </MDTypography>
+                                <MDTypography variant="caption" color="text" display="block" gutterBottom>
+                                    Python의 input() 함수나 Java의 Scanner 등을 사용하는 문제의 경우 입력 데이터를 제공하세요. 
+                                    여러 줄의 입력이 필요한 경우 줄바꿈으로 구분하여 입력하세요.
+                                </MDTypography>
+                                <TextField
+                                    multiline
+                                    rows={6}
+                                    name="inputData"
+                                    value={question.inputData}
+                                    onChange={handleInputDataChange}
+                                    variant="outlined"
+                                    placeholder="테스트 케이스의 입력 데이터를 입력하세요 (예: 5\n3\nHello World)"
                                     fullWidth
                                     margin="normal"
                                 />

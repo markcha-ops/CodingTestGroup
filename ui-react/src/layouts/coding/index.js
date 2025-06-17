@@ -188,7 +188,8 @@ function CodingPage() {
         try {
             const response = await api.post('/api/submissions/debug', {
                 code: code,
-                language: language
+                language: language,
+                inputData: question?.inputData || null
             });
             
             setExecutionResult(response.data);
@@ -241,7 +242,8 @@ function CodingPage() {
         try {
             const response = await api.post('/api/submissions/debug', {
                 code: code,
-                language: 'SQL'
+                language: 'SQL',
+                inputData: question?.inputData || null
             });
             
             setExecutionResult(response.data);

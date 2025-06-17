@@ -170,9 +170,30 @@ public class DockerService {
      * @return                A map containing stdout, stderr, and execution time
      */
     public ExecutionResult executeCode(LanguageType language, String code, String initialCode, int timeout) {
+        return executeCode(language, code, initialCode, null, timeout);
+    }
+    
+    /**
+     * Executes code in a Docker container and returns the result with input data support
+     *
+     * @param language        The programming language
+     * @param code            The source code to execute
+     * @param initialCode     Optional initial code (SQL schema/data setup)
+     * @param inputData       Input data for stdin (for programs using input() function)
+     * @param timeout         Maximum execution time in seconds
+     * @return                A map containing stdout, stderr, and execution time
+     */
+    public ExecutionResult executeCode(LanguageType language, String code, String initialCode, String inputData, int timeout) {
         try {
             String executionId = UUID.randomUUID().toString();
             String workDir = TEMP_DIR + "/" + executionId;
+            
+            log.info("=== Code Execution Debug Info ===");
+            log.info("Language: {}", language);
+            log.info("Execution ID: {}", executionId);
+            log.info("Input Data: '{}'", inputData);
+            log.info("Input Data is null: {}", inputData == null);
+            log.info("Input Data is empty: {}", inputData != null && inputData.trim().isEmpty());
             
             // Create temporary directory
             try {
@@ -195,7 +216,56 @@ public class DockerService {
                 return executeSqlCode(executionId, workDir, code, initialCode, timeout);
             }
             
-            // Write code to file
+            // Check if input data is provided
+            boolean hasInput = (inputData != null && !inputData.trim().isEmpty());
+            
+            log.info("Has input: {}", hasInput);
+            
+            // For languages with input data, create input file and handle appropriately
+            String modifiedCode = code;
+            if (hasInput) {
+                // Create input file for all languages
+                File inputFile = new File(workDir + "/input.txt");
+                try (FileWriter writer = new FileWriter(inputFile)) {
+                    writer.write(inputData);
+                    log.info("Input file created for {}: {}", language, inputFile.getName());
+                } catch (Exception e) {
+                    log.error("Failed to create input file: {}", e.getMessage(), e);
+                    return ExecutionResult.builder()
+                        .stdout("")
+                        .stderr("Failed to prepare input data: " + e.getMessage())
+                        .executionTime(0L)
+                        .exitCode(-1)
+                        .timedOut(false)
+                        .build();
+                }
+                
+                // Modify code based on language
+                switch (language) {
+                    case PYTHON:
+                        // Modify Python code to read from file instead of stdin
+                        modifiedCode = "import sys\n" +
+                                      "import io\n" +
+                                      "with open('/code/input.txt', 'r') as f:\n" +
+                                      "    input_data = f.read()\n" +
+                                      "sys.stdin = io.StringIO(input_data)\n" +
+                                      "# Original user code below:\n" +
+                                      code;
+                        log.info("Modified Python code with improved input redirection");
+                        break;
+                    case JAVA:
+                        // For Java, we'll redirect stdin in the docker command
+                        break;
+                    case CPP:
+                    case C:
+                        // For C/C++, we'll redirect stdin in the docker command
+                        break;
+                    default:
+                        break;
+                }
+            }
+            
+            // Write modified code to file
             String extension = FILE_EXTENSIONS.getOrDefault(language, ".txt");
             String mainFileName = getMainFileName(language);
             File codeFile = new File(workDir + "/" + mainFileName);
@@ -208,9 +278,9 @@ public class DockerService {
                     log.info("Code file created successfully: {}", codeFile.getAbsolutePath());
                 }
                 
-                // Write code to file
+                // Write modified code to file
                 try (FileWriter writer = new FileWriter(codeFile)) {
-                    writer.write(code);
+                    writer.write(modifiedCode);
                     log.info("Code written to file successfully: {}", codeFile.getName());
                 }
             } catch (Exception e) {
@@ -224,9 +294,10 @@ public class DockerService {
                     .build();
             }
             
-            // Build Docker command
-            List<String> dockerCommand = buildDockerCommand(language, executionId, workDir, timeout);
-            System.out.println(String.join(" ", dockerCommand));
+            // Build Docker command (no longer need stdin for Python)
+            List<String> dockerCommand = buildDockerCommand(language, executionId, workDir, timeout, false);
+            log.info("Docker command: {}", String.join(" ", dockerCommand));
+            
             // Execute Docker command
             ProcessBuilder processBuilder = new ProcessBuilder(dockerCommand);
             processBuilder.redirectErrorStream(false);
@@ -418,7 +489,7 @@ public class DockerService {
             .build();
     }
     
-    private List<String> buildDockerCommand(LanguageType language, String executionId, String workDir, int timeout) {
+    private List<String> buildDockerCommand(LanguageType language, String executionId, String workDir, int timeout, boolean hasInput) {
         String dockerImage = DOCKER_IMAGES.getOrDefault(language, "alpine:latest");
         List<String> command = new ArrayList<>();
         
@@ -426,6 +497,12 @@ public class DockerService {
         command.add("docker");
         command.add("run");
         command.add("--rm");
+        
+        // Add interactive flag if input data is provided (but not for Python as we handle it differently)
+        if (hasInput && language != LanguageType.PYTHON) {
+            command.add("-i");
+        }
+        
         command.add("--name");
         command.add("code-exec-" + executionId);
         
@@ -453,7 +530,14 @@ public class DockerService {
         command.add("-c");
         
         List<String> executionCommand = EXECUTION_COMMANDS.getOrDefault(language, List.of("echo", "Unsupported language"));
-        command.add(String.join(" ", executionCommand));
+        String commandString = String.join(" ", executionCommand);
+        
+        // Add input redirection for languages that need it (except Python which handles it internally)
+        if (hasInput && language != LanguageType.PYTHON) {
+            commandString += " < input.txt";
+        }
+        
+        command.add(commandString);
         
         return command;
     }

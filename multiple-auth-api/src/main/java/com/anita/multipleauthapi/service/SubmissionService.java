@@ -46,14 +46,19 @@ public class SubmissionService {
     public DebugResponse debugCode(DebugRequest debugRequest) {
         try {
             log.info("Debugging code with language: {}", debugRequest.getLanguage());
+            log.info("Input data provided: '{}'", debugRequest.getInputData());
+            log.info("Code to execute: {}", debugRequest.getCode());
             
             // Execute code using Docker
             DockerService.ExecutionResult executionResult = dockerService.executeCode(
                     debugRequest.getLanguage(),
                     debugRequest.getCode(),
                     debugRequest.getInitialCode(), // Initial code (SQL schema, etc)
+                    debugRequest.getInputData(), // Input data for programs using input() function
                     DEBUG_TIMEOUT_SECONDS
             );
+            
+            log.info("Execution completed - stdout: '{}', stderr: '{}'", executionResult.getStdout(), executionResult.getStderr());
             
             // Create debug response
             return DebugResponse.builder()
@@ -106,6 +111,7 @@ public class SubmissionService {
                     language,
                     userCode,
                     question.getInitialCode(), // Initial code (SQL schema, etc)
+                    question.getInputData(), // Input data for programs using input() function
                     DEBUG_TIMEOUT_SECONDS
             );
             
@@ -175,6 +181,7 @@ public class SubmissionService {
                     submissionRequest.getLanguage(),
                     submissionRequest.getCode(),
                     question.getInitialCode(), // Initial code (SQL schema, etc)
+                    question.getInputData(), // Input data for programs using input() function
                     DEFAULT_TIMEOUT_SECONDS
             );
 
@@ -190,6 +197,7 @@ public class SubmissionService {
                         question.getLanguage(),
                         question.getCompareCode(),
                         question.getInitialCode(),
+                        question.getInputData(), // Input data for comparison code
                         DEFAULT_TIMEOUT_SECONDS
                 );
                 expectedOutput = comparisonResult.getStdout().trim();
