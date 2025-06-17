@@ -221,7 +221,8 @@ function CodingPage() {
         try {
             const response = await api.post(`/api/submissions/questions/${questionId}`, {
                 code: code,
-                language: language
+                language: language,
+                inputData: inputData
             });
             
             setSubmissionResult(response.data);

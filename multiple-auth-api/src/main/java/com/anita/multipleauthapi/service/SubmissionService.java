@@ -326,7 +326,7 @@ public class SubmissionService {
                     submissionRequest.getLanguage(),
                     submissionRequest.getCode(),
                     question.getInitialCode(), // Initial code (SQL schema, etc)
-                    question.getInputData(), // Input data for programs using input() function
+                    submissionRequest.getInputData(), // Input data for programs using input() function
                     DEFAULT_TIMEOUT_SECONDS
             );
 
