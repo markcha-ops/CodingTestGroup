@@ -390,7 +390,7 @@ public class SubmissionService {
             } else {
                 score = hasPassed ? 100 : 0;
                 if (score == 100) {
-                    expectOutput = resultText.toString();
+                    expectOutput = String.format("%s -> %s", question.getInputData().toString(), userOutput);
                 } else {
                     expectOutput = "Failed";
 
