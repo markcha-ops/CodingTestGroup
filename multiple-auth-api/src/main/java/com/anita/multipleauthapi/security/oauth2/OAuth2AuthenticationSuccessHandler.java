@@ -1,7 +1,9 @@
 package com.anita.multipleauthapi.security.oauth2;
 
 import com.anita.multipleauthapi.config.AppProperties;
+import com.anita.multipleauthapi.model.entity.UserEntity;
 import com.anita.multipleauthapi.model.error.BadRequestException;
+import com.anita.multipleauthapi.repository.UserRepository;
 import com.anita.multipleauthapi.security.TokenDto;
 import com.anita.multipleauthapi.security.TokenProvider;
 import com.anita.multipleauthapi.security.UserPrincipal;
@@ -20,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static com.anita.multipleauthapi.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME;
@@ -32,6 +35,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final AppProperties appProperties;
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
     private final RefreshTokenService refreshTokenService;
+    private final UserRepository userRepository;
 
     @Value("${spring.baseUrl}")
     private String baseUrl;
@@ -70,10 +74,26 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         refreshTokenService.createRefreshToken(userPrincipal.getId(), tokenDto.getRefreshToken());
         
+        // OAuth2 로그인 성공 시 마지막 로그인 시간 업데이트
+        updateLastLoginTime(userPrincipal.getId());
+        
         return UriComponentsBuilder.fromUriString(targetUrl)
                 .queryParam("token", token)
                 .queryParam("refreshToken", tokenDto.getRefreshToken())
                 .build().toUriString();
+    }
+
+    private void updateLastLoginTime(java.util.UUID userId) {
+        try {
+            Optional<UserEntity> userEntityOptional = userRepository.findById(userId);
+            if (userEntityOptional.isPresent()) {
+                UserEntity userEntity = userEntityOptional.get();
+                userEntity.setLastLoginTime(LocalDateTime.now());
+                userRepository.saveAndFlush(userEntity);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to update last login time for user: " + userId, e);
+        }
     }
 
     protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
