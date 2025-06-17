@@ -171,6 +171,7 @@ public class CourseService {
                             .status(relation.getStatus())
                             .createdAt(relation.getCreatedAt())
                             .updatedAt(relation.getUpdatedAt())
+                            .lastLoginTime(user.getLastLoginTime())
                             .build();
                 })
                 .filter(response -> response != null)

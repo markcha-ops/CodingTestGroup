@@ -18,6 +18,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -52,6 +54,10 @@ public class LoginService {
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // 로그인 성공 시 마지막 로그인 시간 업데이트
+        userEntity.setLastLoginTime(LocalDateTime.now());
+        userRepository.saveAndFlush(userEntity);
 
         String token = tokenProvider.createToken(authentication);
         return new LoginResponse(token);

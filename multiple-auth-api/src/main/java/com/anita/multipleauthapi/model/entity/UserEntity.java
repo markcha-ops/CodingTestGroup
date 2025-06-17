@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -52,6 +53,9 @@ public class UserEntity {
     private String updatedAt;
     @Column(name = "current_course_id")
     private UUID currentCourseId;
+    @Column(name = "last_login_time")
+    private LocalDateTime lastLoginTime;
+    
     @PrePersist
     public void generateUUID() {
         if (this.id == null) {

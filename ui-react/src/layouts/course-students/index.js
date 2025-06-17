@@ -144,6 +144,17 @@ function CourseStudents() {
         }
     };
 
+    const formatLastLoginTime = (lastLoginTime) => {
+        if (!lastLoginTime) return '-';
+        try {
+            // lastLoginTime is already a LocalDateTime string from backend
+            const date = new Date(lastLoginTime);
+            return format(date, 'yyyy-MM-dd HH:mm');
+        } catch (error) {
+            return '-';
+        }
+    };
+
     const getStatusBadge = (status) => {
         switch (status) {
             case 'WAITING':
@@ -221,6 +232,7 @@ function CourseStudents() {
                                             <TableCell>상태</TableCell>
                                             <TableCell>등록일</TableCell>
                                             <TableCell>수정일</TableCell>
+                                            <TableCell>마지막 로그인</TableCell>
                                             <TableCell align="right">작업</TableCell>
                                         </TableRow>
                                     </TableHead>
@@ -242,6 +254,7 @@ function CourseStudents() {
                                                 <TableCell>{getStatusBadge(student.status)}</TableCell>
                                                 <TableCell>{formatDate(student.createdAt)}</TableCell>
                                                 <TableCell>{formatDate(student.updatedAt)}</TableCell>
+                                                <TableCell>{formatLastLoginTime(student.lastLoginTime)}</TableCell>
                                                 <TableCell align="right">
                                                     <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                         <Tooltip title="문제 풀이 현황">

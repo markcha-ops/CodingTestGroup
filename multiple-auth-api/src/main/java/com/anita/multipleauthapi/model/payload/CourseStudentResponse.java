@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -21,4 +22,5 @@ public class CourseStudentResponse {
     private StatusType status;
     private String createdAt;
     private String updatedAt;
+    private LocalDateTime lastLoginTime;
 } 
