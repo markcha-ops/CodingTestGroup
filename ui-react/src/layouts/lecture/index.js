@@ -91,6 +91,28 @@ function Lecture() {
         fetchAllLectures();
     }, []);
 
+    // 강의가 있는 가장 최근 날짜 찾기
+    const findLatestLectureDate = (lecturesData) => {
+        if (!lecturesData || lecturesData.length === 0) {
+            return null;
+        }
+        
+        // 모든 강의 날짜를 추출하고 중복 제거
+        const lectureDates = lecturesData.map(lecture => {
+            const lectureDate = new Date(lecture.doAt);
+            // 시간 정보를 제거하고 날짜만 비교하기 위해 setHours 사용
+            lectureDate.setHours(0, 0, 0, 0);
+            return lectureDate;
+        });
+        
+        // 중복 제거 및 정렬 (최신순)
+        const uniqueDates = [...new Set(lectureDates.map(date => date.getTime()))]
+            .map(time => new Date(time))
+            .sort((a, b) => b - a); // 내림차순 정렬 (최신 날짜가 먼저)
+        
+        return uniqueDates.length > 0 ? uniqueDates[0] : null;
+    };
+
     // 모든 강의 목록 가져오기
     const fetchAllLectures = async () => {
         setIsLoading(true);
@@ -109,6 +131,19 @@ function Lecture() {
             }));
             
             setCalendarEvents(events);
+            
+            // 강의가 있는 가장 최근 날짜를 자동으로 선택
+            const latestDate = findLatestLectureDate(lecturesData);
+            if (latestDate) {
+                setSelectedDate(latestDate);
+                // 해당 날짜의 강의 목록을 자동으로 표시
+                const formattedDate = format(latestDate, 'yyyy-MM-dd');
+                const filteredLectures = lecturesData.filter(lecture => {
+                    const lectureDate = format(new Date(lecture.doAt), 'yyyy-MM-dd');
+                    return lectureDate === formattedDate;
+                });
+                setLectures(filteredLectures);
+            }
         } catch (error) {
             console.error('모든 강의 목록 조회 실패:', error);
         } finally {

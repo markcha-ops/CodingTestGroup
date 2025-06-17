@@ -149,6 +149,16 @@ function LectureAdmin() {
         setSelectedDate(slotInfo.start);
         setIsDateFiltered(true);
         
+        // 날짜가 변경되었을 때 폼이 열려있다면 시간 자동 업데이트
+        if (openForm) {
+            const { startTime, endTime } = calculateOptimalTimeForDate(slotInfo.start);
+            setEventData(prev => ({
+                ...prev,
+                startTime: startTime,
+                endTime: endTime
+            }));
+        }
+        
         // 날짜 선택 알림
         const formattedDate = format(slotInfo.start, 'yyyy년 MM월 dd일');
         setAlertMessage(`${formattedDate} 강의를 표시합니다.`);
@@ -156,14 +166,60 @@ function LectureAdmin() {
         setAlertOpen(true);
     };
 
+    // 특정 날짜의 최적 강의 시간 계산 (날짜를 매개변수로 받음)
+    const calculateOptimalTimeForDate = (targetDate) => {
+        const selectedDateStr = format(targetDate, 'yyyy-MM-dd');
+        
+        // 선택된 날짜의 강의들 필터링
+        const lecturesOnSelectedDate = lectures.filter(lecture => {
+            const lectureDate = format(new Date(lecture.doAt), 'yyyy-MM-dd');
+            return lectureDate === selectedDateStr;
+        });
+        
+        // 해당 날짜에 강의가 없으면 기본값 반환
+        if (lecturesOnSelectedDate.length === 0) {
+            return {
+                startTime: '19:15',
+                endTime: '19:30'
+            };
+        }
+        
+        // 해당 날짜의 모든 강의 중 가장 늦은 종료 시간 찾기
+        const latestEndTime = lecturesOnSelectedDate.reduce((latest, lecture) => {
+            const currentEndTime = new Date(lecture.theEnd);
+            return currentEndTime > latest ? currentEndTime : latest;
+        }, new Date(lecturesOnSelectedDate[0].theEnd));
+        
+        // 가장 늦은 종료 시간을 시작 시간으로 설정
+        const startHours = latestEndTime.getHours();
+        const startMinutes = latestEndTime.getMinutes();
+        
+        // 종료 시간은 시작 시간 + 15분
+        const endTime = new Date(latestEndTime);
+        endTime.setMinutes(endTime.getMinutes() + 15);
+        
+        return {
+            startTime: `${startHours.toString().padStart(2, '0')}:${startMinutes.toString().padStart(2, '0')}`,
+            endTime: `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`
+        };
+    };
+
     const handleOpenForm = () => {
+        // 선택된 날짜의 강의 시간 계산
+        const { startTime, endTime } = calculateOptimalTime();
+        
         setEventData({
             name: '',
-            startTime: '09:00',
-            endTime: '10:30',
+            startTime: startTime,
+            endTime: endTime,
             description: ''
         });
         setOpenForm(true);
+    };
+
+    // 선택된 날짜의 최적 강의 시간 계산
+    const calculateOptimalTime = () => {
+        return calculateOptimalTimeForDate(selectedDate);
     };
 
     const handleCloseForm = () => {
@@ -524,7 +580,18 @@ function LectureAdmin() {
                         type="date"
                         fullWidth
                         value={format(selectedDate, 'yyyy-MM-dd')}
-                        onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                        onChange={(e) => {
+                            const newDate = new Date(e.target.value);
+                            setSelectedDate(newDate);
+                            
+                            // 날짜가 변경되면 시간 자동 업데이트
+                            const { startTime, endTime } = calculateOptimalTimeForDate(newDate);
+                            setEventData(prev => ({
+                                ...prev,
+                                startTime: startTime,
+                                endTime: endTime
+                            }));
+                        }}
                         InputLabelProps={{
                             shrink: true,
                         }}

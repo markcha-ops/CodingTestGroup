@@ -402,10 +402,31 @@ function AdminLectureDetail() {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setEditedLecture(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        
+        if (name === 'date') {
+            // 날짜 변경 시 doAt과 theEnd의 날짜 부분만 업데이트하고 시간은 완전히 유지
+            const currentDoAt = editedLecture.doAt || new Date().toISOString();
+            const currentTheEnd = editedLecture.theEnd || new Date().toISOString();
+            
+            // 기존 시간 부분 추출 (T 이후 부분)
+            const doAtTimePart = currentDoAt.split('T')[1]; // 예: "19:00:00.000Z"
+            const theEndTimePart = currentTheEnd.split('T')[1]; // 예: "20:00:00.000Z"
+            
+            // 새로운 날짜와 기존 시간 결합
+            const newDoAt = `${value}T${doAtTimePart}`;
+            const newTheEnd = `${value}T${theEndTimePart}`;
+            
+            setEditedLecture(prev => ({
+                ...prev,
+                doAt: newDoAt,
+                theEnd: newTheEnd
+            }));
+        } else {
+            setEditedLecture(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     };
 
     const handleTimeChange = (e) => {
