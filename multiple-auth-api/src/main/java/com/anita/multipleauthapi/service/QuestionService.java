@@ -98,7 +98,7 @@ public class QuestionService {
                             question.setPass(score == 100 ? true : false);
                             return question;
                         })
-                        .sorted(Comparator.comparing(t->t.getCreatedAt()))
+//                        .sorted(Comparator.comparing(t->t.getCreatedAt()))
                         .toList();
             }
 
