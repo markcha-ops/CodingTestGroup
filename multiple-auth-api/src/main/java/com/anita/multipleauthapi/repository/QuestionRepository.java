@@ -29,7 +29,7 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
             "   GROUP BY s.question.id " +
             ") ms ON q.id = ms.questionId " +
             "WHERE r.toId = :courseId " +
-            "AND q.isActive = true " +
+            "AND q.isActive IN :isActive " +
             "ORDER BY l.doAt, r2.createdAt")
     List<QuestionWithScoreResponse> findQuestionsWithScoreByCourseId(@Param("courseId") UUID courseId, @Param("userId") UUID userId, @Param("isActive") List<Boolean> isActive);
 
