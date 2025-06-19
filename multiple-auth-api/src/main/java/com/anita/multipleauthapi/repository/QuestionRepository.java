@@ -20,17 +20,20 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
     @Query("SELECT NEW com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse(q, COALESCE(ms.score, 0)) " +
             "FROM QuestionEntity q " +
             "JOIN RelationsEntity r ON q.id = r.fromId " +
-            "JOIN RelationsEntity r2 ON q.id = r2.toId " +
-            "JOIN LectureEntity l ON l.id = r2.fromId " +
             "LEFT JOIN ( " +
             "   SELECT s.question.id AS questionId, MAX(s.score) AS score " +
             "   FROM SubmissionEntity s " +
             "   WHERE s.user.id = :userId " +
             "   GROUP BY s.question.id " +
             ") ms ON q.id = ms.questionId " +
+            "LEFT JOIN ( " +
+            "   SELECT r2.toId AS toId, r2.createdAt AS createdAt, l.doAt AS doAt " +
+            "   FROM RelationsEntity r2 " +
+            "   JOIN LectureEntity l ON r2.fromId = l.id " +
+            ") r3 ON r3.toId = q.id " +
             "WHERE r.toId = :courseId " +
             "AND q.isActive IN :isActive " +
-            "ORDER BY l.doAt, r2.createdAt")
+            "ORDER BY r3.doAt, r3.createdAt, q.createdAt")
     List<QuestionWithScoreResponse> findQuestionsWithScoreByCourseId(@Param("courseId") UUID courseId, @Param("userId") UUID userId, @Param("isActive") List<Boolean> isActive);
 
     @Query("SELECT q FROM QuestionEntity q, RelationsEntity r " +

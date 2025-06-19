@@ -37,6 +37,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import LinearProgress from "@mui/material/LinearProgress";
 import Box from "@mui/material/Box";
+import Checkbox from "@mui/material/Checkbox";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -70,6 +71,8 @@ function QuestionList() {
     const [bulkCreateProgress, setBulkCreateProgress] = useState(0);
     const [bulkCreateResult, setBulkCreateResult] = useState(null);
     const [activatingQuestionId, setActivatingQuestionId] = useState(null);
+    const [selectedQuestions, setSelectedQuestions] = useState([]);
+    const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
     
     // Available programming languages
     const programmingLanguages = [
@@ -301,6 +304,61 @@ function QuestionList() {
         }
     };
 
+    // Handle checkbox selection
+    const handleSelectQuestion = (questionId) => {
+        setSelectedQuestions(prev => {
+            if (prev.includes(questionId)) {
+                return prev.filter(id => id !== questionId);
+            } else {
+                return [...prev, questionId];
+            }
+        });
+    };
+
+    // Handle select all checkbox
+    const handleSelectAll = () => {
+        if (selectedQuestions.length === questions.length) {
+            setSelectedQuestions([]);
+        } else {
+            setSelectedQuestions(questions.map(q => q.id));
+        }
+    };
+
+    // Open bulk delete confirmation dialog
+    const handleBulkDeleteConfirmOpen = () => {
+        setBulkDeleteDialogOpen(true);
+    };
+
+    // Close bulk delete confirmation dialog
+    const handleBulkDeleteConfirmClose = () => {
+        setBulkDeleteDialogOpen(false);
+    };
+
+    // Handle bulk delete
+    const handleBulkDelete = async () => {
+        if (selectedQuestions.length === 0) return;
+        
+        try {
+            // Delete all selected questions
+            await Promise.all(
+                selectedQuestions.map(questionId => 
+                    api.delete(`/api/questions/${questionId}`)
+                )
+            );
+            
+            // Remove deleted questions from the state
+            setQuestions(questions.filter(q => !selectedQuestions.includes(q.id)));
+            
+            // Clear selection and close dialog
+            setSelectedQuestions([]);
+            setBulkDeleteDialogOpen(false);
+        } catch (err) {
+            console.error('Failed to delete questions:', err);
+            setError('문제 삭제에 실패했습니다.');
+            setBulkDeleteDialogOpen(false);
+        }
+    };
+
     return (
         <DashboardLayout>
             <DashboardNavbar />
@@ -381,6 +439,16 @@ function QuestionList() {
                                         <Table sx={{ minWidth: 650 }} aria-label="question table">
                                             <TableHead>
                                                 <TableRow>
+                                                    <TableCell padding="checkbox">
+                                                        <Checkbox
+                                                            indeterminate={selectedQuestions.length > 0 && selectedQuestions.length < questions.length}
+                                                            checked={questions.length > 0 && selectedQuestions.length === questions.length}
+                                                            onChange={handleSelectAll}
+                                                            inputProps={{
+                                                                'aria-label': 'select all questions',
+                                                            }}
+                                                        />
+                                                    </TableCell>
                                                     <TableCell>제목</TableCell>
                                                     <TableCell>난이도</TableCell>
                                                     <TableCell>언어</TableCell>
@@ -395,11 +463,25 @@ function QuestionList() {
                                                         <TableRow
                                                             key={question.id}
                                                             sx={{
-                                                                '&:hover': { backgroundColor: '#f5f5f5', cursor: 'pointer' },
+                                                                '&:hover': { backgroundColor: '#f5f5f5' },
                                                             }}
-                                                            onClick={() => handleSolveQuestion(question.id)}
+                                                            selected={selectedQuestions.includes(question.id)}
                                                         >
-                                                            <TableCell component="th" scope="row">
+                                                            <TableCell padding="checkbox">
+                                                                <Checkbox
+                                                                    checked={selectedQuestions.includes(question.id)}
+                                                                    onChange={() => handleSelectQuestion(question.id)}
+                                                                    inputProps={{
+                                                                        'aria-labelledby': `enhanced-table-checkbox-${question.id}`,
+                                                                    }}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell 
+                                                                component="th" 
+                                                                scope="row"
+                                                                sx={{ cursor: 'pointer' }}
+                                                                onClick={() => handleSolveQuestion(question.id)}
+                                                            >
                                                                 {question.title}
                                                             </TableCell>
                                                             <TableCell>Lv. {question.lv}</TableCell>
@@ -470,7 +552,7 @@ function QuestionList() {
                                                     ))
                                                 ) : (
                                                     <TableRow>
-                                                        <TableCell colSpan={6} align="center">
+                                                        <TableCell colSpan={7} align="center">
                                                             문제가 없습니다. 새 문제를 추가하세요.
                                                         </TableCell>
                                                     </TableRow>
@@ -480,23 +562,37 @@ function QuestionList() {
                                     </TableContainer>
                                 )}
                                 
-                                {/* Create new question buttons */}
-                                <MDBox mt={3} display="flex" justifyContent="flex-end" gap={2}>
-                                    <MDButton 
-                                        variant="outlined" 
-                                        color="info" 
-                                        onClick={handleBulkCreateOpen}
-                                    >
-                                        문제 일괄 생성
-                                    </MDButton>
-                                    <MDButton 
-                                        variant="contained" 
-                                        color="info" 
-                                        startIcon={<CodeIcon />} 
-                                        onClick={() => navigate('/question')}
-                                    >
-                                        새 문제 만들기
-                                    </MDButton>
+                                {/* Action buttons */}
+                                <MDBox mt={3} display="flex" justifyContent="space-between" alignItems="center">
+                                    <MDBox display="flex" gap={2}>
+                                        {selectedQuestions.length > 0 && (
+                                            <MDButton 
+                                                variant="contained" 
+                                                color="error" 
+                                                onClick={handleBulkDeleteConfirmOpen}
+                                                startIcon={<DeleteIcon />}
+                                            >
+                                                선택된 {selectedQuestions.length}개 문제 삭제
+                                            </MDButton>
+                                        )}
+                                    </MDBox>
+                                    <MDBox display="flex" gap={2}>
+                                        <MDButton 
+                                            variant="outlined" 
+                                            color="info" 
+                                            onClick={handleBulkCreateOpen}
+                                        >
+                                            문제 일괄 생성
+                                        </MDButton>
+                                        <MDButton 
+                                            variant="contained" 
+                                            color="info" 
+                                            startIcon={<CodeIcon />} 
+                                            onClick={() => navigate('/question')}
+                                        >
+                                            새 문제 만들기
+                                        </MDButton>
+                                    </MDBox>
                                 </MDBox>
                             </MDBox>
                         </Card>
@@ -524,6 +620,31 @@ function QuestionList() {
                         취소
                     </Button>
                     <Button onClick={handleDeleteQuestion} color="error" autoFocus>
+                        삭제
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Bulk Delete Confirmation Dialog */}
+            <Dialog
+                open={bulkDeleteDialogOpen}
+                onClose={handleBulkDeleteConfirmClose}
+                aria-labelledby="bulk-delete-dialog-title"
+                aria-describedby="bulk-delete-dialog-description"
+            >
+                <DialogTitle id="bulk-delete-dialog-title">
+                    {"선택된 문제 삭제 확인"}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="bulk-delete-dialog-description">
+                        선택된 {selectedQuestions.length}개의 문제를 정말로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleBulkDeleteConfirmClose} color="primary">
+                        취소
+                    </Button>
+                    <Button onClick={handleBulkDelete} color="error" autoFocus>
                         삭제
                     </Button>
                 </DialogActions>
