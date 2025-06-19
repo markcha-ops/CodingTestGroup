@@ -17,15 +17,20 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
     
     List<QuestionEntity> findByCreatedBy(UUID userId);
 
-    @Query("SELECT NEW com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse(q, " +
-            "COALESCE(maxScore.score, 0)) " +
+    @Query("SELECT NEW com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse(q, COALESCE(ms.score, 0)) " +
             "FROM QuestionEntity q " +
             "JOIN RelationsEntity r ON q.id = r.fromId " +
-            "LEFT JOIN (SELECT s.question.id as questionId, MAX(s.score) as score " +
-            "           FROM SubmissionEntity s WHERE s.user.id = :userId GROUP BY s.question.id) maxScore " +
-            "           ON q.id = maxScore.questionId " +
+            "JOIN RelationsEntity r2 ON q.id = r2.toId " +
+            "JOIN LectureEntity l ON l.id = r2.fromId " +
+            "LEFT JOIN ( " +
+            "   SELECT s.question.id AS questionId, MAX(s.score) AS score " +
+            "   FROM SubmissionEntity s " +
+            "   WHERE s.user.id = :userId " +
+            "   GROUP BY s.question.id " +
+            ") ms ON q.id = ms.questionId " +
             "WHERE r.toId = :courseId " +
-            "AND q.isActive IN (:isActive)")
+            "AND q.isActive = true " +
+            "ORDER BY l.doAt, r2.createdAt")
     List<QuestionWithScoreResponse> findQuestionsWithScoreByCourseId(@Param("courseId") UUID courseId, @Param("userId") UUID userId, @Param("isActive") List<Boolean> isActive);
 
     @Query("SELECT q FROM QuestionEntity q, RelationsEntity r " +
