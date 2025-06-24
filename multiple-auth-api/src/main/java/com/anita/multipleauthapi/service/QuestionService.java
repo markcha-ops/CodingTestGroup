@@ -211,9 +211,7 @@ public class QuestionService {
         existingQuestion.setIsTestCase(questionRequest.getIsTestCase());
         existingQuestion.setIsCompare(questionRequest.getIsCompare());
         existingQuestion.setCompareCode(questionRequest.getCompareCode());
-        existingQuestion.setIsActive(questionRequest.getIsActive());
         existingQuestion.setUpdatedAt(String.valueOf(System.currentTimeMillis()));
-        
         QuestionEntity updatedQuestion = questionRepository.save(existingQuestion);
         return mapToQuestionResponse(updatedQuestion);
     }
