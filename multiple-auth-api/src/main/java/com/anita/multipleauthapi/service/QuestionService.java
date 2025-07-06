@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -88,7 +89,7 @@ public class QuestionService {
                 // No filters, return all questions
                 List<QuestionWithScoreResponse> questionsWithScoreByCourseId = questionRepository.findQuestionsWithScoreByCourseId(courseEntity.getId(), userEntity.getId(), isActive);
 
-                questions = questionsWithScoreByCourseId.stream()
+                return questionsWithScoreByCourseId.stream()
                         .map(t-> {
                             QuestionEntity question = t.getQuestion();
                             Integer score = t.getScore();
@@ -96,9 +97,8 @@ public class QuestionService {
                                 score = 0;
                             }
                             question.setPass(score == 100 ? true : false);
-                            return question;
+                            return this.mapToQuestionResponse(question, t.getDoAt(), t.getCreatedAt(), t.getUpdatedAt(), t.getLecttureName());
                         })
-//                        .sorted(Comparator.comparing(t->t.getCreatedAt()))
                         .toList();
             }
 
@@ -271,6 +271,34 @@ public class QuestionService {
      * @param entity The entity to map
      * @return The mapped response
      */
+    private QuestionResponse mapToQuestionResponse(QuestionEntity entity, LocalDateTime doAt, String createdAt, String updatedAt, String lectureName) {
+        return QuestionResponse.builder()
+                .id(entity.getId())
+                .title(entity.getTitle())
+                .content(entity.getContent())
+                .language(entity.getLanguage())
+                .lv(entity.getLv())
+                .answer(entity.getAnswer())
+                .initialCode(entity.getInitialCode())
+                .inputData(entity.getInputData())
+                .testCases(entity.getTestCases())
+                .isTestCase(entity.getIsTestCase())
+                .pass(entity.getPass())
+                .isCompare(entity.getIsCompare())
+                .compareCode(entity.getCompareCode())
+                .isActive(entity.getIsActive())
+                .doAt(doAt)
+                .createdAt(entity.getCreatedAt())
+                .createdQAt(createdAt)
+                .updatedAt(updatedAt)
+                .lectureName(lectureName)
+                .build();
+    }
+    /**
+     * Map a QuestionEntity to a QuestionResponse
+     * @param entity The entity to map
+     * @return The mapped response
+     */
     private QuestionResponse mapToQuestionResponse(QuestionEntity entity) {
         return QuestionResponse.builder()
                 .id(entity.getId())
@@ -287,7 +315,6 @@ public class QuestionService {
                 .isCompare(entity.getIsCompare())
                 .compareCode(entity.getCompareCode())
                 .isActive(entity.getIsActive())
-                .createdBy(entity.getCreatedBy())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

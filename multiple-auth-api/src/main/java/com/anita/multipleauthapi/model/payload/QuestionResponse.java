@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -29,6 +30,9 @@ public class QuestionResponse {
     private String compareCode;
     private Boolean isActive;
     private UUID createdBy;
+    private LocalDateTime doAt;
     private String createdAt;
+    private String createdQAt;
     private String updatedAt;
+    private String lectureName;
 } 

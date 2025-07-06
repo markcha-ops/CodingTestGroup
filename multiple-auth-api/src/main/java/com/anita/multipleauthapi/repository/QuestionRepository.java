@@ -17,7 +17,7 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
     
     List<QuestionEntity> findByCreatedBy(UUID userId);
 
-    @Query("SELECT NEW com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse(q, COALESCE(ms.score, 0)) " +
+    @Query("SELECT NEW com.anita.multipleauthapi.model.payload.QuestionWithScoreResponse(q, COALESCE(ms.score, 0), r3.doAt, r3.createdAt, r3.name) " +
             "FROM QuestionEntity q " +
             "JOIN RelationsEntity r ON q.id = r.fromId " +
             "LEFT JOIN ( " +
@@ -27,7 +27,7 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, UUID> 
             "   GROUP BY s.question.id " +
             ") ms ON q.id = ms.questionId " +
             "LEFT JOIN ( " +
-            "   SELECT r2.toId AS toId, r2.createdAt AS createdAt, l.doAt AS doAt " +
+            "   SELECT r2.toId AS toId, r2.createdAt AS createdAt, l.doAt AS doAt , l.name AS name" +
             "   FROM RelationsEntity r2 " +
             "   JOIN LectureEntity l ON r2.fromId = l.id " +
             ") r3 ON r3.toId = q.id " +
