@@ -17,6 +17,11 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ListIcon from "@mui/icons-material/List";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import SchoolIcon from "@mui/icons-material/School";
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -135,7 +140,21 @@ function QuestionProblems() {
         return allQuestions.filter(q => q.doAt != null && q.doAt.split('T')[0] === currentDate);
     };
 
+    // Group questions by lectureName
+    const groupQuestionsByLecture = (questions) => {
+        const grouped = {};
+        questions.forEach(question => {
+            const lectureName = question.lectureName || '강의명 없음';
+            if (!grouped[lectureName]) {
+                grouped[lectureName] = [];
+            }
+            grouped[lectureName].push(question);
+        });
+        return grouped;
+    };
+
     const questions = getFilteredQuestions();
+    const groupedByLecture = groupQuestionsByLecture(questions);
     const totalQuestions = questions.length;
     const passedQuestions = questions.filter(q => q.pass).length;
 
@@ -266,72 +285,170 @@ function QuestionProblems() {
 
                 {/* Questions List */}
                 <Grid container spacing={3}>
-                    {questions.map((question) => (
-                        <Grid item xs={12} key={question.id}>
-                            <Card 
-                                sx={{ 
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s',
-                                    '&:hover': {
-                                        transform: 'translateY(-2px)',
-                                        boxShadow: 3
-                                    },
-                                    border: question.pass ? '2px solid #4CAF50' : '1px solid #e0e0e0'
-                                }}
-                                onClick={() => handleQuestionClick(question.id)}
-                            >
-                                <CardContent>
-                                    <Grid container spacing={2} alignItems="center">
-                                        <Grid item xs={12} md={8}>
-                                            <MDBox display="flex" alignItems="center" mb={1}>
-                                                {question.pass ? (
-                                                    <CheckCircleIcon sx={{ color: '#4CAF50', mr: 1 }} />
-                                                ) : (
-                                                    <RadioButtonUncheckedIcon sx={{ color: '#9e9e9e', mr: 1 }} />
-                                                )}
-                                                <MDTypography variant="h6" fontWeight="medium">
-                                                    {question.title}
+                    {showAllQuestions ? (
+                        // All questions mode: show individual questions with lecture names
+                        questions.map((question) => (
+                            <Grid item xs={12} key={question.id}>
+                                <Card 
+                                    sx={{ 
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s',
+                                        '&:hover': {
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: 3
+                                        },
+                                        border: question.pass ? '2px solid #4CAF50' : '1px solid #e0e0e0'
+                                    }}
+                                    onClick={() => handleQuestionClick(question.id)}
+                                >
+                                    <CardContent>
+                                        <Grid container spacing={2} alignItems="center">
+                                            <Grid item xs={12} md={8}>
+                                                <MDBox display="flex" alignItems="center" mb={1}>
+                                                    {question.pass ? (
+                                                        <CheckCircleIcon sx={{ color: '#4CAF50', mr: 1 }} />
+                                                    ) : (
+                                                        <RadioButtonUncheckedIcon sx={{ color: '#9e9e9e', mr: 1 }} />
+                                                    )}
+                                                    <MDTypography variant="h6" fontWeight="medium">
+                                                        {question.title}
+                                                    </MDTypography>
+                                                </MDBox>
+                                                <MDTypography variant="body2" color="text" sx={{ mb: 2 }}>
+                                                    {question.content.length > 100 
+                                                        ? question.content.substring(0, 100) + '...' 
+                                                        : question.content}
                                                 </MDTypography>
-                                            </MDBox>
-                                            <MDTypography variant="body2" color="text" sx={{ mb: 2 }}>
-                                                {question.content.length > 100 
-                                                    ? question.content.substring(0, 100) + '...' 
-                                                    : question.content}
-                                            </MDTypography>
-                                            {showAllQuestions && (
-                                                <MDTypography variant="caption" color="text" sx={{ opacity: 0.7 }}>
-                                                    날짜: {question.doAt ? formatDate(question.doAt.split('T')[0]) : '날짜 미지정'}
-                                                </MDTypography>
-                                            )}
-                                        </Grid>
-                                        <Grid item xs={12} md={4}>
-                                            <MDBox display="flex" flexDirection="column" alignItems="flex-end" gap={1}>
-                                                <Chip 
-                                                    label={question.language}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    icon={<CodeIcon />}
-                                                />
-                                                <Chip 
-                                                    label={`${question.lv}lv - ${getDifficultyLabel(question.lv)}`}
-                                                    color={getDifficultyColor(question.lv)}
-                                                    size="small"
-                                                />
-                                                {question.pass && (
+                                                <MDBox>
+                                                    <MDTypography variant="caption" color="text" sx={{ opacity: 0.7 }}>
+                                                        강의: {question.lectureName || '강의명 없음'}
+                                                    </MDTypography>
+                                                    <br />
+                                                    <MDTypography variant="caption" color="text" sx={{ opacity: 0.7 }}>
+                                                        날짜: {question.doAt ? formatDate(question.doAt.split('T')[0]) : '날짜 미지정'}
+                                                    </MDTypography>
+                                                </MDBox>
+                                            </Grid>
+                                            <Grid item xs={12} md={4}>
+                                                <MDBox display="flex" flexDirection="column" alignItems="flex-end" gap={1}>
                                                     <Chip 
-                                                        label="통과"
-                                                        color="success"
+                                                        label={question.language}
+                                                        variant="outlined"
                                                         size="small"
-                                                        variant="filled"
+                                                        icon={<CodeIcon />}
                                                     />
-                                                )}
-                                            </MDBox>
+                                                    <Chip 
+                                                        label={`${question.lv}lv - ${getDifficultyLabel(question.lv)}`}
+                                                        color={getDifficultyColor(question.lv)}
+                                                        size="small"
+                                                    />
+                                                    {question.pass && (
+                                                        <Chip 
+                                                            label="통과"
+                                                            color="success"
+                                                            size="small"
+                                                            variant="filled"
+                                                        />
+                                                    )}
+                                                </MDBox>
+                                            </Grid>
                                         </Grid>
-                                    </Grid>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    ))}
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        ))
+                    ) : (
+                        // Date-specific mode: group by lecture name
+                        Object.entries(groupedByLecture).map(([lectureName, lectureQuestions]) => (
+                            <Grid item xs={12} key={lectureName}>
+                                <Accordion defaultExpanded>
+                                    <AccordionSummary
+                                        expandIcon={<ExpandMoreIcon />}
+                                        aria-controls="panel1a-content"
+                                        id="panel1a-header"
+                                    >
+                                        <MDBox display="flex" alignItems="center" gap={1}>
+                                            <SchoolIcon />
+                                            <MDTypography variant="h6" fontWeight="medium">
+                                                {lectureName}
+                                            </MDTypography>
+                                            <Chip 
+                                                label={`${lectureQuestions.length}개 문제`}
+                                                size="small"
+                                                variant="outlined"
+                                                sx={{ ml: 1 }}
+                                            />
+                                        </MDBox>
+                                    </AccordionSummary>
+                                    <AccordionDetails>
+                                        <Grid container spacing={2}>
+                                            {lectureQuestions.map((question) => (
+                                                <Grid item xs={12} key={question.id}>
+                                                    <Card 
+                                                        sx={{ 
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.3s',
+                                                            '&:hover': {
+                                                                transform: 'translateY(-2px)',
+                                                                boxShadow: 3
+                                                            },
+                                                            border: question.pass ? '2px solid #4CAF50' : '1px solid #e0e0e0'
+                                                        }}
+                                                        onClick={() => handleQuestionClick(question.id)}
+                                                    >
+                                                        <CardContent>
+                                                            <Grid container spacing={2} alignItems="center">
+                                                                <Grid item xs={12} md={8}>
+                                                                    <MDBox display="flex" alignItems="center" mb={1}>
+                                                                        {question.pass ? (
+                                                                            <CheckCircleIcon sx={{ color: '#4CAF50', mr: 1 }} />
+                                                                        ) : (
+                                                                            <RadioButtonUncheckedIcon sx={{ color: '#9e9e9e', mr: 1 }} />
+                                                                        )}
+                                                                        <MDTypography variant="h6" fontWeight="medium">
+                                                                            {question.title}
+                                                                        </MDTypography>
+                                                                    </MDBox>
+                                                                    <MDTypography variant="body2" color="text" sx={{ mb: 2 }}>
+                                                                        {question.content.length > 100 
+                                                                            ? question.content.substring(0, 100) + '...' 
+                                                                            : question.content}
+                                                                    </MDTypography>
+                                                                </Grid>
+                                                                <Grid item xs={12} md={4}>
+                                                                    <MDBox display="flex" flexDirection="column" alignItems="flex-end" gap={1}>
+                                                                        <Chip 
+                                                                            label={question.language}
+                                                                            variant="outlined"
+                                                                            size="small"
+                                                                            icon={<CodeIcon />}
+                                                                        />
+                                                                        <Chip 
+                                                                            label={`${question.lv}lv - ${getDifficultyLabel(question.lv)}`}
+                                                                            color={getDifficultyColor(question.lv)}
+                                                                            size="small"
+                                                                        />
+                                                                        {question.pass && (
+                                                                            <Chip 
+                                                                                label="통과"
+                                                                                color="success"
+                                                                                size="small"
+                                                                                variant="filled"
+                                                                            />
+                                                                        )}
+                                                                    </MDBox>
+                                                                </Grid>
+                                                            </Grid>
+                                                        </CardContent>
+                                                    </Card>
+                                                </Grid>
+                                            ))}
+                                        </Grid>
+                                    </AccordionDetails>
+                                </Accordion>
+                            </Grid>
+                        ))
+                    )}
                 </Grid>
 
                 {questions.length === 0 && !loading && (
