@@ -146,8 +146,8 @@ public class CourseService {
         }
         
         // Check if course exists
-        courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found with ID: " + courseId));
+//        courseRepository.findById(courseId)
+//                .orElseThrow(() -> new RuntimeException("Course not found with ID: " + courseId));
         
         // Get all relations for the course
         List<RelationsEntity> studentRelations = relationsRepository.findCourseStudentRelations(courseId);
