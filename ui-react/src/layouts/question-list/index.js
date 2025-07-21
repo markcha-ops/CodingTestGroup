@@ -105,11 +105,19 @@ function QuestionList() {
             if (keywordFilter) params.keyword = keywordFilter;
             
             const response = await api.get('/api/questions', { params });
-            setQuestions(response.data);
+            
+            // Debug logging
+            console.log('API Response:', response.data);
+            console.log('Is Array:', Array.isArray(response.data));
+            
+            // Ensure response.data is an array
+            const questionsData = Array.isArray(response.data) ? response.data : [];
+            setQuestions(questionsData);
             setError(null);
         } catch (err) {
             console.error('Failed to fetch questions:', err);
             setError('문제 목록을 가져오는데 실패했습니다.');
+            setQuestions([]); // Set empty array on error
         } finally {
             setLoading(false);
         }
@@ -168,7 +176,8 @@ function QuestionList() {
         try {
             await api.delete(`/api/questions/${selectedQuestionId}`);
             // Remove the deleted question from the state
-            setQuestions(questions.filter(q => q.id !== selectedQuestionId));
+            const questionsArray = Array.isArray(questions) ? questions : [];
+            setQuestions(questionsArray.filter(q => q.id !== selectedQuestionId));
             // Close the dialog
             handleDeleteConfirmClose();
         } catch (err) {
@@ -317,10 +326,11 @@ function QuestionList() {
 
     // Handle select all checkbox
     const handleSelectAll = () => {
-        if (selectedQuestions.length === questions.length) {
+        const questionsArray = Array.isArray(questions) ? questions : [];
+        if (selectedQuestions.length === questionsArray.length) {
             setSelectedQuestions([]);
         } else {
-            setSelectedQuestions(questions.map(q => q.id));
+            setSelectedQuestions(questionsArray.map(q => q.id));
         }
     };
 
@@ -347,7 +357,8 @@ function QuestionList() {
             );
             
             // Remove deleted questions from the state
-            setQuestions(questions.filter(q => !selectedQuestions.includes(q.id)));
+            const questionsArray = Array.isArray(questions) ? questions : [];
+            setQuestions(questionsArray.filter(q => !selectedQuestions.includes(q.id)));
             
             // Clear selection and close dialog
             setSelectedQuestions([]);
@@ -441,8 +452,8 @@ function QuestionList() {
                                                 <TableRow>
                                                     <TableCell padding="checkbox">
                                                         <Checkbox
-                                                            indeterminate={selectedQuestions.length > 0 && selectedQuestions.length < questions.length}
-                                                            checked={questions.length > 0 && selectedQuestions.length === questions.length}
+                                                            indeterminate={selectedQuestions.length > 0 && selectedQuestions.length < (Array.isArray(questions) ? questions.length : 0)}
+                                                            checked={(Array.isArray(questions) ? questions.length : 0) > 0 && selectedQuestions.length === (Array.isArray(questions) ? questions.length : 0)}
                                                             onChange={handleSelectAll}
                                                             inputProps={{
                                                                 'aria-label': 'select all questions',
@@ -458,7 +469,7 @@ function QuestionList() {
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
-                                                {questions.length > 0 ? (
+                                                {Array.isArray(questions) && questions.length > 0 ? (
                                                     questions.map((question) => (
                                                         <TableRow
                                                             key={question.id}
