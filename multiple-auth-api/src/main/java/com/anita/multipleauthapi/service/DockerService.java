@@ -32,7 +32,7 @@ public class DockerService {
     static {
         // Initialize Docker images
         DOCKER_IMAGES.put(LanguageType.JAVA, "openjdk:17-slim");
-        DOCKER_IMAGES.put(LanguageType.PYTHON, "python:3.9-slim");
+        DOCKER_IMAGES.put(LanguageType.PYTHON, "amancevice/pandas:latest-slim");
         DOCKER_IMAGES.put(LanguageType.C, "gcc:latest");
         DOCKER_IMAGES.put(LanguageType.CPP, "gcc:latest");
         DOCKER_IMAGES.put(LanguageType.JAVASCRIPT, "node:16-slim");
