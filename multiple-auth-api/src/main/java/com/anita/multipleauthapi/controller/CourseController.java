@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -90,7 +91,10 @@ public class CourseController {
         return ResponseEntity.ok("User invited to course");
     }
     @PostMapping("/course")
-    public ResponseEntity<?> createCourse(@CurrentUser UserPrincipal userPrincipal, @RequestBody CourseEntity courseEntity) {
+    public ResponseEntity<?> createCourse(@CurrentUser UserPrincipal userPrincipal, @RequestBody Map<String, String> request) {
+        CourseEntity courseEntity = new CourseEntity();
+        courseEntity.setName(request.get("name"));
+        courseEntity.setDescription(request.get("description"));
         courseService.createCourse(courseEntity, userPrincipal.getId());
         return ResponseEntity.ok("User invited to course");
     }

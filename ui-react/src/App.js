@@ -19,6 +19,7 @@ import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "co
 import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
 import { SelectedCourseProvider } from "./SelectedCourseContext";
+import ChannelService from "./ChannelService";
 
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
@@ -121,6 +122,19 @@ export default function App() {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
   }, [pathname]);
+
+  // 채널톡 초기화: 왼쪽 네비게이션(dashboard layout)이 있을 때만 활성화
+  useEffect(() => {
+      // 대시보드 레이아웃(네비게이션 있음)일 때 채널톡 부트
+      ChannelService.boot({
+        pluginKey: "377ed06e-be99-44db-9d0c-87cd6ac76a6b"
+      });
+
+    // 컴포넌트 언마운트 시 채널톡 종료
+    return () => {
+      ChannelService.shutdown();
+    };
+  }, [layout]);
 
   const getRoutes = (allRoutes) =>
       allRoutes.map((route) => {
