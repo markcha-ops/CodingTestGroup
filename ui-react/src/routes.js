@@ -36,7 +36,6 @@ Coded by www.creative-tim.com
 */
 
 // Material Dashboard 2 React layouts
-import Dashboard from "layouts/dashboard";
 import Tables from "layouts/tables";
 import DevTool from "layouts/devtool";
 import Billing from "layouts/billing";
@@ -64,16 +63,7 @@ import CourseManage from "./layouts/course-manage";
 
 
 const routes = [
-  // Dashboard and general items
-  {
-    type: "collapse",
-    name: "Dashboard",
-    key: "dashboard",
-    icon: <Icon fontSize="small">dashboard</Icon>,
-    route: "/dashboard",
-    component: <Dashboard />,
-    hide: true,
-  },
+  // General items
   {
     type: "collapse",
     name: "강의",
