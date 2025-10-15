@@ -132,12 +132,23 @@ function Lecture() {
             
             setCalendarEvents(events);
             
-            // 강의가 있는 가장 최근 날짜를 자동으로 선택
-            const latestDate = findLatestLectureDate(lecturesData);
-            if (latestDate) {
-                setSelectedDate(latestDate);
+            // 로컬 스토리지에서 저장된 날짜 확인
+            const savedDateStr = localStorage.getItem('selectedLectureDate');
+            let dateToSelect = null;
+            
+            if (savedDateStr) {
+                // 저장된 날짜가 있으면 해당 날짜를 사용
+                dateToSelect = new Date(savedDateStr);
+                dateToSelect.setHours(0, 0, 0, 0);
+            } else {
+                // 저장된 날짜가 없으면 강의가 있는 가장 최근 날짜를 자동으로 선택
+                dateToSelect = findLatestLectureDate(lecturesData);
+            }
+            
+            if (dateToSelect) {
+                setSelectedDate(dateToSelect);
                 // 해당 날짜의 강의 목록을 자동으로 표시
-                const formattedDate = format(latestDate, 'yyyy-MM-dd');
+                const formattedDate = format(dateToSelect, 'yyyy-MM-dd');
                 const filteredLectures = lecturesData.filter(lecture => {
                     const lectureDate = format(new Date(lecture.doAt), 'yyyy-MM-dd');
                     return lectureDate === formattedDate;
@@ -176,12 +187,20 @@ function Lecture() {
 
     // 캘린더 슬롯 선택 시 날짜 저장 및 해당 날짜의 강의 목록 조회
     const handleSelectSlot = (slotInfo) => {
-        setSelectedDate(slotInfo.start);
-        fetchLecturesForDate(slotInfo.start);
+        const selectedDate = slotInfo.start;
+        selectedDate.setHours(0, 0, 0, 0);
+        setSelectedDate(selectedDate);
+        // 선택된 날짜를 로컬 스토리지에 저장
+        localStorage.setItem('selectedLectureDate', selectedDate.toISOString());
+        fetchLecturesForDate(selectedDate);
     };
 
     // 캘린더 이벤트 클릭 시 강의 상세 페이지로 이동
     const handleEventClick = (event) => {
+        // 이벤트의 날짜를 로컬 스토리지에 저장
+        const eventDate = new Date(event.start);
+        eventDate.setHours(0, 0, 0, 0);
+        localStorage.setItem('selectedLectureDate', eventDate.toISOString());
         navigate('/lecture/detail', { state: { lectureId: event.id } });
     };
 
