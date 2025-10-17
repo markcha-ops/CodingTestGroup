@@ -2,6 +2,7 @@ package com.anita.multipleauthapi.controller;
 
 import com.anita.multipleauthapi.model.entity.LectureEntity;
 import com.anita.multipleauthapi.model.payload.LectureDetailResponse;
+import com.anita.multipleauthapi.model.payload.LectureGradingResponse;
 import com.anita.multipleauthapi.security.CurrentUser;
 import com.anita.multipleauthapi.security.UserPrincipal;
 import com.anita.multipleauthapi.service.LectureService;
@@ -182,6 +183,26 @@ public class LectureController {
             } else {
                 return ResponseEntity.badRequest().body("Failed to remove question from lecture");
             }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    /**
+     * Get grading status for all students in a lecture
+     * Returns lecture information with all questions and each student's highest score
+     * 
+     * @param userPrincipal The current user principal
+     * @param lectureId The ID of the lecture to get grading information for
+     * @return LectureGradingResponse containing lecture, questions, and student grading details
+     */
+    @GetMapping("/grading/{lectureId}")
+    public ResponseEntity<?> getLectureGradingStatus(
+            @CurrentUser UserPrincipal userPrincipal,
+            @PathVariable UUID lectureId) {
+        try {
+            LectureGradingResponse gradingResponse = lectureService.getLectureGradingStatus(userPrincipal, lectureId);
+            return ResponseEntity.ok(gradingResponse);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

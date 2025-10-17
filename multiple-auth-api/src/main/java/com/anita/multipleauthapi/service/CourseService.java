@@ -165,6 +165,7 @@ public class CourseService {
                     return CourseStudentResponse.builder()
                             .relationId(relation.getId())
                             .userId(user.getId())
+                            .name(user.getName())
                             .email(user.getEmail())
                             .firstname(user.getFirstname())
                             .lastname(user.getLastname())

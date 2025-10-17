@@ -4,15 +4,24 @@ import com.anita.multipleauthapi.model.entity.LectureEntity;
 import com.anita.multipleauthapi.model.entity.RelationsEntity;
 import com.anita.multipleauthapi.model.entity.UrlInfoEntity;
 import com.anita.multipleauthapi.model.entity.QuestionEntity;
+import com.anita.multipleauthapi.model.entity.UserEntity;
+import com.anita.multipleauthapi.model.entity.SubmissionEntity;
 import com.anita.multipleauthapi.model.enums.EntityType;
 import com.anita.multipleauthapi.model.enums.RelationsType;
 import com.anita.multipleauthapi.model.enums.StatusType;
 import com.anita.multipleauthapi.model.payload.LectureDetailResponse;
+import com.anita.multipleauthapi.model.payload.LectureGradingResponse;
+import com.anita.multipleauthapi.model.payload.StudentGradingInfo;
+import com.anita.multipleauthapi.model.payload.StudentDto;
+import com.anita.multipleauthapi.model.payload.LectureDto;
+import com.anita.multipleauthapi.model.payload.QuestionDto;
 import com.anita.multipleauthapi.model.payload.DtoMapper;
 import com.anita.multipleauthapi.repository.LectureEntityRepository;
 import com.anita.multipleauthapi.repository.RelationsEntityRepository;
 import com.anita.multipleauthapi.repository.UrlInfoEntityRepository;
 import com.anita.multipleauthapi.repository.QuestionRepository;
+import com.anita.multipleauthapi.repository.UserRepository;
+import com.anita.multipleauthapi.repository.SubmissionRepository;
 import com.anita.multipleauthapi.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +47,10 @@ public class LectureService {
     private UrlInfoEntityRepository urlInfoRepository;
     @Autowired
     private QuestionRepository questionRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private SubmissionRepository submissionRepository;
     
     /**
      * Get all lectures for a specific course
@@ -110,7 +123,7 @@ public class LectureService {
     @Transactional
     public boolean associateUrlWithLecture(UUID lectureId, UUID urlId, String type) {
         // Verify the lecture exists
-        LectureEntity lecture = lectureRepository.findById(lectureId)
+        lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new RuntimeException("Lecture not found with ID: " + lectureId));
         
         // Verify the URL exists and is of the specified type
@@ -169,7 +182,7 @@ public class LectureService {
     @Transactional
     public boolean associateQuestionWithLecture(UUID lectureId, UUID questionId) {
         // Verify the lecture exists
-        LectureEntity lecture = lectureRepository.findById(lectureId)
+        lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new RuntimeException("Lecture not found with ID: " + lectureId));
         
         // Create a new relation - no need to check for existing ones as multiple questions can be associated
@@ -326,5 +339,125 @@ public class LectureService {
         
         relationsEntityRepository.deleteAll(relations);
         return true;
+    }
+
+    /**
+     * Get grading status for all students in a lecture
+     * Returns lecture information, questions, and each student's highest score for each question
+     * 
+     * @param userPrincipal The current user principal (must have course access)
+     * @param lectureId The ID of the lecture to get grading information for
+     * @return LectureGradingResponse containing lecture, questions, and student grading details
+     */
+    @Transactional(readOnly = true)
+    public LectureGradingResponse getLectureGradingStatus(UserPrincipal userPrincipal, UUID lectureId) {
+        // Verify user has a course selected
+        UUID courseId = userPrincipal.getCourseId();
+        if (courseId == null) {
+            throw new RuntimeException("No course selected");
+        }
+        
+        // Get the lecture entity
+        LectureEntity lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new RuntimeException("Lecture not found with ID: " + lectureId));
+        
+        // Find all question relations associated with this lecture
+        List<RelationsEntity> questionRelations = relationsEntityRepository
+                .findByFromIdAndToType(lectureId, EntityType.QUESTION);
+        
+        // Sort question relations by creation time
+        questionRelations.sort(Comparator.comparing(RelationsEntity::getCreatedAt));
+        
+        // Get question entities in the sorted order
+        List<QuestionEntity> questions = new ArrayList<>();
+        for (RelationsEntity relation : questionRelations) {
+            questionRepository.findById(relation.getToId())
+                .ifPresent(questions::add);
+        }
+        
+        // Get all students enrolled in the course
+        List<RelationsEntity> studentRelations = relationsEntityRepository.findCourseStudentRelations(courseId);
+        
+        // Filter only approved students
+        List<UserEntity> students = studentRelations.stream()
+                .filter(relation -> relation.getStatus() == StatusType.APPROVED)
+                .map(relation -> userRepository.findById(relation.getFromId()).orElse(null))
+                .filter(user -> user != null)
+                .collect(Collectors.toList());
+        
+        // Convert lecture entity to DTO
+        LectureDto lectureDto = LectureDto.builder()
+                .id(lecture.getId())
+                .name(lecture.getName())
+                .description(lecture.getDescription())
+                .isActive(lecture.isActive())
+                .doAt(lecture.getDoAt())
+                .theEnd(lecture.getTheEnd())
+                .createdAt(lecture.getCreatedAt())
+                .updatedAt(lecture.getUpdatedAt())
+                .build();
+        
+        // Convert question entities to DTOs
+        List<QuestionDto> questionDtos = questions.stream()
+                .map(q -> QuestionDto.builder()
+                        .id(q.getId())
+                        .title(q.getTitle())
+                        .content(q.getContent())
+                        .language(q.getLanguage())
+                        .lv(q.getLv())
+                        .isActive(q.getIsActive())
+                        .isCompare(q.getIsCompare())
+                        .build())
+                .collect(Collectors.toList());
+        
+        // Build student grading information
+        List<StudentGradingInfo> studentGradings = new ArrayList<>();
+        
+        for (UserEntity student : students) {
+            Map<UUID, Integer> scores = new HashMap<>();
+            
+            // For each question, find the highest score achieved by this student
+            for (QuestionEntity question : questions) {
+                List<SubmissionEntity> submissions = submissionRepository
+                        .findByUserIdAndQuestionId(student.getId(), question.getId());
+                
+                // Find the maximum score among all submissions
+                Integer maxScore = submissions.stream()
+                        .map(SubmissionEntity::getScore)
+                        .filter(score -> score != null)
+                        .max(Integer::compareTo)
+                        .orElse(null);
+                
+                scores.put(question.getId(), maxScore);
+            }
+            
+            // Convert student entity to DTO
+            StudentDto studentDto = StudentDto.builder()
+                    .id(student.getId())
+                    .email(student.getEmail())
+                    .name(student.getName())
+                    .firstname(student.getFirstname())
+                    .lastname(student.getLastname())
+                    .authority(student.getAuthority())
+                    .provider(student.getProvider())
+                    .providerId(student.getProviderId())
+                    .currentCourseId(student.getCurrentCourseId())
+                    .lastLoginTime(student.getLastLoginTime())
+                    .createdAt(student.getCreatedAt())
+                    .updatedAt(student.getUpdatedAt())
+                    .build();
+            
+            studentGradings.add(StudentGradingInfo.builder()
+                    .student(studentDto)
+                    .scores(scores)
+                    .build());
+        }
+        
+        // Return the structured response with DTOs
+        return LectureGradingResponse.builder()
+                .lecture(lectureDto)
+                .questions(questionDtos)
+                .studentGradings(studentGradings)
+                .build();
     }
 }

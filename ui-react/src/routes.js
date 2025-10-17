@@ -55,6 +55,7 @@ import QuestionProblems from "layouts/question-problems";
 import CourseStudents from "layouts/course-students";
 import StudentProblems from "layouts/course-students/student-problems";
 import LectureList from "layouts/lecture-list";
+import LectureGrading from "layouts/lecture-grading";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -165,6 +166,16 @@ const routes = [
     icon: <Icon fontSize="small">admin_panel_settings</Icon>,
     route: "/lecture/admin",
     component: <LectureAdmin />,
+    hide: false,
+    isAdminRoute: true
+  },
+  {
+    type: "collapse",
+    name: "강의 체점 현황",
+    key: "lecture-grading",
+    icon: <Icon fontSize="small">assignment_turned_in</Icon>,
+    route: "/lecture-grading",
+    component: <LectureGrading />,
     hide: false,
     isAdminRoute: true
   },
